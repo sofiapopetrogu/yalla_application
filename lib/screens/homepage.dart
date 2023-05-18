@@ -15,7 +15,7 @@ class HomePage extends StatelessWidget {
         title: Text(HomePage.routename),
       ),
       body: Center(
-          child: Text('login_flow'),
+          child: Text('Homepage'),
         ),
       drawer: Drawer(
         child: ListView(
@@ -23,7 +23,7 @@ class HomePage extends StatelessWidget {
           children: [
             DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: Color.fromARGB(255, 255, 253, 208), //cream color
               ),
               child: Text('login_flow'),
             ),

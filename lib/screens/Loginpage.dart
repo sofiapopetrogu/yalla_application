@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project_app/screens/homepage.dart';
 import 'package:flutter_login/flutter_login.dart';
+import 'package:flutter_login/theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
@@ -54,7 +55,7 @@ class _LoginPageState extends State<LoginPage> {
     
     return FlutterLogin(
       title: 'Welcome',
-      logo: 'assets/images/flutter-logo.png',
+      //logo: AssetImage('assets/images/flutter-logo.png'), //need to add Logo here
       onLogin: _loginUser,
       onSignup: _signUpUser,
       onRecoverPassword: _recoverPassword,
