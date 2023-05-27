@@ -55,7 +55,7 @@ class _LoginPageState extends State<LoginPage> {
     
     return FlutterLogin(
       title: 'Welcome',
-      //logo: AssetImage('assets/images/flutter-logo.png'), //need to add Logo here
+      logo: AssetImage('assets/images/yalla.png'), //need to add Logo here
       onLogin: _loginUser,
       onSignup: _signUpUser,
       onRecoverPassword: _recoverPassword,

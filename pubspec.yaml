@@ -11,6 +11,12 @@ dependencies:
     sdk: flutter
   shared_preferences: ^2.1.0
   flutter_login: ^4.1.1
+  provider: ^6.0.5
+  material_design_icons_flutter: ^6.0.7096
+  floor: ^1.4.2
+  http: ^0.13.6
+  jwt_decoder: ^2.0.1
+  intl: ^0.18.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -20,6 +26,12 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
+  floor_generator: ^1.4.2
+  build_runner: ^2.1.2
 
 flutter:
   uses-material-design: true
+  assets:
+      - assets/images/fitbit.png
+      - assets/images/yalla.png
+      
