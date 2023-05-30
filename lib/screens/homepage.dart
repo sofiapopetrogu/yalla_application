@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:project_app/screens/loginpage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
 
-  static const routename = 'Homepage';
+  static const routename = 'Dashboard';
 
   @override
   Widget build(BuildContext context) {
@@ -13,9 +14,10 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(HomePage.routename),
+        backgroundColor: Colors.teal, // Set the background color to teal
       ),
       body: Center(
-          child: Text('Homepage'),
+          child: Container(),
         ),
       drawer: Drawer(
         child: ListView(
@@ -23,17 +25,34 @@ class HomePage extends StatelessWidget {
           children: [
             DrawerHeader(
               decoration: BoxDecoration(
-                color: Color.fromARGB(255, 255, 253, 208), //cream color
+                color: Colors.teal,
               ),
-              child: Text('login_flow'),
+              child: Container(),
             ),
             ListTile(
-              leading: Icon(Icons.logout),
+              leading: Icon(MdiIcons.logout),
               title: Text('Logout'),
               onTap: () => _toLoginPage(context),
             ),
           ],
         ),
+
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(MdiIcons.accountCircle), 
+            label: 'Profile',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite), 
+            label: 'Health Insights',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
+        ],
       ),
     );
   } //build
