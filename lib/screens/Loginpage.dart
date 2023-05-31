@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:project_app/screens/homepage.dart';
 import 'package:flutter_login/flutter_login.dart';
@@ -64,7 +66,7 @@ class _LoginPageState extends State<LoginPage> {
       },
     );
   } // build
-  void _toHomePage(BuildContext context){
+  void _toHomePage(BuildContext context) async{
     Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomePage()));
   }//_toHomePage
   
