@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:project_app/screens/loginpage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:project_app/screens/profile.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
