@@ -44,6 +44,14 @@ class ProfilePage extends StatelessWidget {
                         // Handle edit profile button press
                         // Add your logic here
                       },
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.teal, // Set the background color
+                        onPrimary: Colors.white, // Set the text color
+                        elevation: 4, // Set the elevation (shadow) of the button
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10), // Set the border radius
+                        ),
+                      ),
                     ),
                     ElevatedButton(
                       child: Text('Share Profile'),
