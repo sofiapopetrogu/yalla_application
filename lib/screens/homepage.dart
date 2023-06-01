@@ -65,8 +65,13 @@ class HomePage extends StatelessWidget {
 
     //Pop the drawer first 
     Navigator.pop(context);
-    //Then pop the HomePage
+    //Then push to login
     Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoginPage()));
-  }//_toCalendarPage
+  }
+
+  void _toProfile(BuildContext context) async{
+
+    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => ProfilePage()));
+  }
 
 } //HomePage
