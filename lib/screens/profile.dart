@@ -12,6 +12,7 @@ class ProfilePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Profile Page'),
+        backgroundColor: Colors.teal, // Set the background color to teal
         leading: TextButton(
           child: Text('Done',
             style: TextStyle(color: Colors.white),
@@ -100,13 +101,13 @@ class ProfilePage extends StatelessWidget {
             ),
             SizedBox(height: 20),
             Text(
-              'Biography and Useful Information',
+              'About You',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             TextField(
               maxLines: 5,
               decoration: InputDecoration(
-                hintText: 'Enter your biography and useful information',
+                hintText: 'Tell us about yourself',
               ),
               onChanged: (value) {
                 // Handle biography input
