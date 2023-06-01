@@ -54,6 +54,11 @@ class HomePage extends StatelessWidget {
             label: 'Settings',
           ),
         ],
+        onTap: (int index) {
+          if (index == 0) {
+            _toProfile(context);
+          }
+        },
       ),
     );
   } //build
@@ -69,9 +74,11 @@ class HomePage extends StatelessWidget {
     Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoginPage()));
   }
 
-  void _toProfile(BuildContext context) async{
-
-    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => ProfilePage()));
+  void _toProfile(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ProfilePage()),
+    );
   }
 
 } //HomePage
