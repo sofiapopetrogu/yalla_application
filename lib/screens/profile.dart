@@ -1,12 +1,39 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:project_app/screens/homepage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   ProfilePage({Key? key}) : super(key: key);
 
   static const routename = 'ProfilePage';
 
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+
+  
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  TextEditingController name_editor = TextEditingController();
+  TextEditingController email_editor = TextEditingController();
+  TextEditingController phone_editor = TextEditingController();
+  TextEditingController about_editor = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    setTextFieldState();
+  
+  }//initState
+
+  void setTextFieldState() async {
+    final sp = await SharedPreferences.getInstance();
+    name_editor.text = sp.getString('profile_name')?? '';
+    email_editor.text = sp.getString('profile_email')?? '';
+    phone_editor.text = sp.getString('profile_phone')?? '';
+    about_editor.text = sp.getString('profile_about')?? '';
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,7 +44,12 @@ class ProfilePage extends StatelessWidget {
           child: Text('Done',
             style: TextStyle(color: Colors.white),
           ), 
-          onPressed: () {
+          onPressed: () async {
+            final sp = await SharedPreferences.getInstance();
+            sp.setString('profile_name', name_editor.text);
+            sp.setString('profile_email', email_editor.text);
+            sp.setString('profile_phone', phone_editor.text);
+            sp.setString('profile_about', about_editor.text);
             // Navigate back to the homepage
             Navigator.pop(context);
           },
@@ -59,6 +91,14 @@ class ProfilePage extends StatelessWidget {
                         // Handle share profile button press
                         // Add your logic here
                       },
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.teal, // Set the background color
+                        onPrimary: Colors.white, // Set the text color
+                        elevation: 4, // Set the elevation (shadow) of the button
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10), // Set the border radius
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -73,24 +113,18 @@ class ProfilePage extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: 'Enter your name',
               ),
-              onChanged: (value) {
-                // Handle name input
-                // Add your logic here
-              },
+              controller: name_editor,
             ),
             SizedBox(height: 20),
             Text(
               'Email',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
             ),
             TextField(
               decoration: InputDecoration(
                 hintText: 'Enter your email',
               ),
-              onChanged: (value) {
-                // Handle email input
-                // Add your logic here
-              },
+              controller: email_editor,
             
             ),
             SizedBox(height: 20),
@@ -102,10 +136,7 @@ class ProfilePage extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: 'Enter your phone number',
               ),
-              onChanged: (value) {
-                // Handle phone number input
-                // Add your logic here
-              },
+              controller: phone_editor,
             ),
             SizedBox(height: 20),
             Text(
@@ -117,10 +148,7 @@ class ProfilePage extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: 'Tell us about yourself',
               ),
-              onChanged: (value) {
-                // Handle biography input
-                // Add your logic here
-              },
+              controller: about_editor,
             ),
             // Add more widgets or features as desired
           ],
@@ -128,4 +156,5 @@ class ProfilePage extends StatelessWidget {
       ),
     );
   }
-}
+  
+  } // LoginScreen
