@@ -1,12 +1,7 @@
 // ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors
 
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:project_app/screens/homepage.dart';
-import 'package:flutter_login/flutter_login.dart';
-import 'package:flutter_login/theme.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:project_app/screens/community.dart';
+
 //import 'package:charts_flutter/flutter.dart' as charts;
 
 class CommunityHub extends StatelessWidget {
