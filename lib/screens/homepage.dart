@@ -46,8 +46,8 @@ class HomePage extends StatelessWidget {
             label: 'Profile',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.favorite), 
-            label: 'Health Insights',
+            icon: Icon(Icons.group), 
+            label: 'Community',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
