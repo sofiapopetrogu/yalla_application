@@ -60,9 +60,9 @@ class HomePage extends StatelessWidget {
           if (index == 0) {
             _toProfile(context);
           }
-          else if (index == 1) {
+           else if (index == 1) {
             _toCommunity(context);
-          }
+          } 
         },
       ),
     );
@@ -92,6 +92,6 @@ class HomePage extends StatelessWidget {
       context,
       MaterialPageRoute(builder: (context) => CommunityHub()),
     );
-  }
+  } 
 
 } //HomePage

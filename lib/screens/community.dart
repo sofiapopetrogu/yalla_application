@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:project_app/screens/homepage.dart';
@@ -6,10 +8,6 @@ import 'package:flutter_login/theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:project_app/screens/community.dart';
 //import 'package:charts_flutter/flutter.dart' as charts;
-
-void main() {
-  runApp(CommunityHub());
-}
 
 class CommunityHub extends StatelessWidget {
   const CommunityHub({Key? key}) : super(key: key);
@@ -21,34 +19,75 @@ class CommunityHub extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Community Hub'),
+        backgroundColor: Colors.teal, // Set the background color to teal
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
             // Section: Previous User Experiences
             Card(
-              child: ListTile(
-                leading: Icon(Icons.history),
-                title: Text('Previous User Experiences'),
-                subtitle: Text('Lorem ipsum dolor sit amet, consectetur adipiscing elit.'),
+              child: ExpansionTile(
+              title: Text('Previous User Experiences'),
+              leading: Icon(Icons.history),
+              children: <Widget>[
+                  ListTile(title: Text('UX 1'),
+                            shape: Border(
+                            top: BorderSide(width: 1.0, color: Colors.grey),
+                          ), ),
+                  ListTile(title: Text('UX 2'),
+                            shape: Border(
+                            top: BorderSide(width: 1.0, color: Colors.grey),
+                          ), ),
+                  ListTile(title: Text('UX 3'),
+                            shape: Border(
+                            top: BorderSide(width: 1.0, color: Colors.grey),
+                          ), ),
+                ],
               ),
             ),
-
+            
             // Section: Question and Answer
             Card(
-              child: ListTile(
-                leading: Icon(Icons.question_answer),
-                title: Text('Question and Answer'),
-                subtitle: Text('Ask a question or find answers to health-related queries.'),
+              child: ExpansionTile(
+              title: Text('Question and Answer'),
+              subtitle: Text('Ask a question or find answers to health-related queries.'), //TODO: update font size later
+              leading: Icon(Icons.question_answer),
+              children: <Widget>[
+                  ListTile(title: Text('QA 1'),
+                            shape: Border(
+                            top: BorderSide(width: 1.0, color: Colors.grey),
+                          ), ),
+                  ListTile(title: Text('QA 2'),
+                            shape: Border(
+                            top: BorderSide(width: 1.0, color: Colors.grey),
+                          ), ),
+                  ListTile(title: Text('QA 3'),
+                            shape: Border(
+                            top: BorderSide(width: 1.0, color: Colors.grey),
+                          ), ),
+                ],
               ),
             ),
-
-            // Section: Community Hub
+            
+            // Section: Reviews
             Card(
-              child: ListTile(
-                leading: Icon(Icons.group),
-                title: Text('Community Hub'),
-                subtitle: Text('Connect with other users and share your insights.'),
+              child: ExpansionTile(
+              title: Text('User Reviews'),
+              leading: Icon(Icons.group),
+              children: <Widget>[
+                  ListTile(title: Text('UX 1'),
+                            shape: Border(
+                            top: BorderSide(width: 1.0, color: Colors.grey),
+                          ), ),
+                  ListTile(title: Text('UX 2'),
+                            shape: Border(
+                            top: BorderSide(width: 1.0, color: Colors.grey),
+                          ), ),
+                  ListTile(title: Text('UX 3'),
+                            shape: Border(
+                            top: BorderSide(width: 1.0, color: Colors.grey),
+                          ), ),
+                ],
               ),
             ),
 
@@ -72,49 +111,12 @@ class CommunityHub extends StatelessWidget {
               ),
             ), */
             // Back Button
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context); // Navigate back to the previous screen (dashboard)
-              },
-              child: Text('Go Back to Dashboard'),
-            ),
           ],
         ),
       ),
     );
   }
 
-  // Create sample data for the graph
-  /* List<charts.Series<TimeSeriesData, DateTime>> _createSampleData() {
-    final data = [
-      TimeSeriesData(DateTime(2022, 1, 1), 5),
-      TimeSeriesData(DateTime(2022, 2, 1), 10),
-      TimeSeriesData(DateTime(2022, 3, 1), 8),
-      TimeSeriesData(DateTime(2022, 4, 1), 12),
-      TimeSeriesData(DateTime(2022, 5, 1), 6),
-      TimeSeriesData(DateTime(2022, 6, 1), 9),
-    ];
-
-    return [
-      charts.Series<TimeSeriesData, DateTime>(
-        id: 'Health Insights',
-        colorFn: (, _) => charts.MaterialPalette.blue.shadeDefault,
-        domainFn: (TimeSeriesData data, _) => data.time,
-        measureFn: (TimeSeriesData data, _) => data.value,
-        data: data,
-      ),
-    ];
-  } */
 }
 
-/* class TimeSeriesData {
-  final DateTime time;
-  final int value;
-
-  TimeSeriesData(this.time, this.value);
-}
- */
-
-// Set Full Page Background to Teal
-// 3 boxes: Previous User Experience, Question and Answer, Reviews  
 //autogeneration can be a future improvement
