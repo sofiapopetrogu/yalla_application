@@ -3,6 +3,8 @@ import 'package:project_app/screens/loginpage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:project_app/screens/profile.dart';
+import 'package:project_app/screens/community.dart';
+
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -58,6 +60,9 @@ class HomePage extends StatelessWidget {
           if (index == 0) {
             _toProfile(context);
           }
+          else if (index == 1) {
+            _toCommunity(context);
+          }
         },
       ),
     );
@@ -78,6 +83,14 @@ class HomePage extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => ProfilePage()),
+    );
+  }
+
+  void _toCommunity(BuildContext context) {
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => CommunityHub()),
     );
   }
 
