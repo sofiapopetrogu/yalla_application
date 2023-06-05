@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:project_app/screens/profile.dart';
 import 'package:project_app/screens/community.dart';
+import 'package:project_app/screens/settings.dart';
 
 
 class HomePage extends StatelessWidget {
@@ -63,6 +64,9 @@ class HomePage extends StatelessWidget {
            else if (index == 1) {
             _toCommunity(context);
           } 
+          else if (index == 2) {
+            _toSettings(context);
+          }
         },
       ),
     );
@@ -93,5 +97,13 @@ class HomePage extends StatelessWidget {
       MaterialPageRoute(builder: (context) => CommunityHub()),
     );
   } 
+
+  void _toSettings(BuildContext context) {
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => Settings()),
+    );
+  }
 
 } //HomePage
