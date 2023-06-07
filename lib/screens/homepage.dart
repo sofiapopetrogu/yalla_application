@@ -121,6 +121,28 @@ class HomePage extends StatelessWidget {
                         SnackBar(content: Text(final_message)));
                 },
                 child: Text('Get Step')),
+                ElevatedButton(
+                onPressed: () async {
+                  //final statusOK = await Data_Access.getStep();
+
+                  //final message = statusOK
+                   //   ? 'Request successful'
+                     // : 'Request failed';
+
+                  final heart = await Data_Access.getHeart();
+
+                  //convert list to string
+                  var final_message = heart.map(
+                    (e) => e.time.toString() + ' ' + e.value.toString()
+                  ).join('\n'
+                  );
+   
+                  ScaffoldMessenger.of(context)
+                    ..removeCurrentSnackBar()
+                    ..showSnackBar(
+                        SnackBar(content: Text(final_message)));
+                },
+                child: Text('Get Heart')),
           ],
         ),
         ),
