@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class Authentication {
 
 //This method allows to check if the IMPACT backend is up
-  Future<bool> _isImpactUp() async {
+  static Future<bool> isImpactUp() async {
 
     //Create the request
     final url = Impact.baseUrl + Impact.pingEndpoint;
@@ -21,10 +21,10 @@ class Authentication {
 
     //Just return if the status code is OK
     return response.statusCode == 200;
-  } //_isImpactUp
+  } //isImpactUp
 
   //This method allows to obtain the JWT token pair from IMPACT and store it in SharedPreferences
-  Future<int> _getAndStoreTokens() async {
+  static Future<int> getAndStoreTokens() async {
 
     //Create the request
     final url = Impact.baseUrl + Impact.tokenEndpoint;
@@ -44,10 +44,10 @@ class Authentication {
 
     //Just return the status code
     return response.statusCode;
-  } //_getAndStoreTokens
+  } //getAndStoreTokens
 
   //This method allows to refrsh the stored JWT in SharedPreferences
-  Future<int> _refreshTokens() async {
+  static Future<int> refreshTokens() async {
 
     //Create the request 
     final url = Impact.baseUrl + Impact.refreshEndpoint;
@@ -70,7 +70,7 @@ class Authentication {
     //Just return the status code
     return response.statusCode;
     
-  } //_refreshTokens
+  } //refreshTokens
 
 
 }

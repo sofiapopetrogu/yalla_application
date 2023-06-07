@@ -1,0 +1,52 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:project_app/util/impact.dart';
+import 'package:project_app/util/authentication.dart';
+import 'package:http/http.dart' as http;
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:project_app/models/steps.dart';
+
+class Data_Access {
+
+static Future<List<Steps>> getStep() async{
+    final sp = await SharedPreferences.getInstance();
+    final access = sp.getString('access'); //request access token, will be null if not present
+    if(access == null){
+      return List.empty();
+    }
+    else{
+      if(JwtDecoder.isExpired(access)){
+        await Authentication.refreshTokens(); //refresh token if expired
+        var access = sp.getString('access');
+      }
+
+      final day = '2023-05-15';
+      final url = Impact.baseUrl + Impact.stepEndpoint + 'patients/Jpefaq6m58/' + 'day/$day/';
+
+      final headers = {
+        HttpHeaders.authorizationHeader: 'Bearer $access' //user must be authenticated to access this endpoint
+      };
+
+      final response = await http.get(
+            Uri.parse(url), 
+            headers: headers);
+      final List<Steps> result = [];
+      if(response.statusCode == 200){
+        final decodedResponse = jsonDecode(response.body);
+        
+        
+        for(var i = 0; i < decodedResponse['data']['data'].length; i++){
+          final dataEntry = decodedResponse['data']['data'][i];
+          //result.add(Steps.fromJson(dataEntry));
+
+          result.add(Steps(time: DateTime.parse(day + ' ' + dataEntry['time']), value: int.parse(dataEntry['value'])));
+        }
+      }
+      print(response.body);
+      return result;
+    }
+  } //getStep
+}//Data_Access
