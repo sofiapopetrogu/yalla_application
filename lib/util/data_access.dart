@@ -82,7 +82,7 @@ static Future<List<Heart>> getHeart() async{
         for(var i = 0; i < decodedResponse['data']['data'].length; i++){
           final dataEntry = decodedResponse['data']['data'][i];
 
-          result.add(Heart(time: DateTime.parse(day + ' ' + dataEntry['time']), value: int.parse(dataEntry['value'])));
+          result.add(Heart(time: DateTime.parse(day + ' ' + dataEntry['time']), value: dataEntry['value']));
         }
       }
       print(response.body);

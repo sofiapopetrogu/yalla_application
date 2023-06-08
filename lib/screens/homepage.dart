@@ -134,8 +134,7 @@ class HomePage extends StatelessWidget {
                   //convert list to string
                   var final_message = heart.map(
                     (e) => e.time.toString() + ' ' + e.value.toString()
-                  ).join('\n'
-                  );
+                  ).join('\n');
    
                   ScaffoldMessenger.of(context)
                     ..removeCurrentSnackBar()

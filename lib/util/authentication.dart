@@ -38,6 +38,7 @@ class Authentication {
     if (response.statusCode == 200) {
       final decodedResponse = jsonDecode(response.body);
       final sp = await SharedPreferences.getInstance();
+      print(decodedResponse['access']);
       await sp.setString('access', decodedResponse['access']);
       await sp.setString('refresh', decodedResponse['refresh']);
     } //if
