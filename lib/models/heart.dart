@@ -7,4 +7,4 @@ class Heart{
   Heart.fromJson(Map<String, dynamic> json)
     : time = DateTime.parse(json['time']),
       value = json['value'];
-}//Steps
+}//Heart

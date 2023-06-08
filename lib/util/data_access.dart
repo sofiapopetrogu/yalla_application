@@ -52,6 +52,46 @@ static Future<List<Steps>> getStep() async{
     }
   } //getStep
 
+  /* static Future<List<Steps>> getmonthlyStep() async{
+    final sp = await SharedPreferences.getInstance();
+    final access = sp.getString('access'); //request access token, will be null if not present
+    if(access == null){
+      return List.empty();
+    }
+    else{
+      if(JwtDecoder.isExpired(access)){
+        await Authentication.refreshTokens(); //refresh token if expired
+        var access = sp.getString('access');
+      }
+
+      final startdate = '2023-05-01';
+      final enddate = '2023-05-31';
+      final url = Impact.baseUrl + Impact.stepEndpoint + 'patients/Jpefaq6m58/' + 'daterange/startdate/$startdate/enddate/$enddate/';
+
+      final headers = {
+        HttpHeaders.authorizationHeader: 'Bearer $access' //user must be authenticated to access this endpoint
+      };
+
+      final response = await http.get(
+            Uri.parse(url), 
+            headers: headers);
+      final List<Steps> result = [];
+      if(response.statusCode == 200){
+        final decodedResponse = jsonDecode(response.body);
+        
+        
+        for(var i = 0; i < decodedResponse['data']['data'].length; i++){
+          final dataEntry = decodedResponse['data']['data'][i];
+          //result.add(Steps.fromJson(dataEntry));
+
+          result.add(Steps(time: DateTime.parse(day + ' ' + dataEntry['time']), value: int.parse(dataEntry['value'])));
+        }
+      }
+      print(response.body);
+      return result;
+    }
+  } //getmonthlyStep */
+
 static Future<List<Heart>> getHeart() async{
     final sp = await SharedPreferences.getInstance();
     final access = sp.getString('access'); //request access token, will be null if not present
@@ -89,4 +129,42 @@ static Future<List<Heart>> getHeart() async{
       return result;
     }
   } //getHeart
+
+  /* static Future<List<RestingHeart>> getRestingHeart() async{
+    final sp = await SharedPreferences.getInstance();
+    final access = sp.getString('access'); //request access token, will be null if not present
+    if(access == null){
+      return List.empty();
+    }
+    else{
+      if(JwtDecoder.isExpired(access)){
+        await Authentication.refreshTokens(); //refresh token if expired
+        var access = sp.getString('access');
+      }
+
+      final day = '2023-05-15';
+      final url = Impact.baseUrl + Impact.restingheartEndpoint + 'patients/Jpefaq6m58/' + 'day/$day/';
+
+      final headers = {
+        HttpHeaders.authorizationHeader: 'Bearer $access' //user must be authenticated to access this endpoint
+      };
+
+      final response = await http.get(
+            Uri.parse(url), 
+            headers: headers);
+      final List<RestingHeart> result = [];
+      if(response.statusCode == 200){
+        final decodedResponse = jsonDecode(response.body);
+        
+        
+        for(var i = 0; i < decodedResponse['data']['data'].length; i++){
+          final dataEntry = decodedResponse['data']['data'][i];
+
+          result.add(RestingHeart(time: DateTime.parse(day + ' ' + dataEntry['time']), value: dataEntry['value']));
+        }
+      }
+      print(response.body);
+      return result;
+    }
+  } //getHeart */
 }//Data_Access

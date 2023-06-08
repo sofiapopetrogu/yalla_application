@@ -120,7 +120,7 @@ class HomePage extends StatelessWidget {
                     ..showSnackBar(
                         SnackBar(content: Text(final_message)));
                 },
-                child: Text('Get Step')),
+                child: Text('Get Step Day')),
                 ElevatedButton(
                 onPressed: () async {
                   //final statusOK = await Data_Access.getStep();
@@ -141,7 +141,28 @@ class HomePage extends StatelessWidget {
                     ..showSnackBar(
                         SnackBar(content: Text(final_message)));
                 },
-                child: Text('Get Heart')),
+                child: Text('Get Heart Day')),
+                /* ElevatedButton(
+                onPressed: () async {
+                  //final statusOK = await Data_Access.getStep();
+
+                  //final message = statusOK
+                   //   ? 'Request successful'
+                     // : 'Request failed';
+
+                  final restingheart = await Data_Access.getRestingHeart();
+
+                  //convert list to string
+                  var final_message = restingheart.map(
+                    (e) => e.time.toString() + ' ' + e.value.toString()
+                  ).join('\n');
+   
+                  ScaffoldMessenger.of(context)
+                    ..removeCurrentSnackBar()
+                    ..showSnackBar(
+                        SnackBar(content: Text(final_message)));
+                },
+                child: Text('Get RestingHeart')), */
           ],
         ),
         ),

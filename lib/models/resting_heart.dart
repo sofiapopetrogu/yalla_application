@@ -1,12 +1,10 @@
 class RestingHeart{
   final DateTime time;
-  final int value;
-  final double error;
+  final double value;
 
-  RestingHeart({required this.time, required this.value, required this.error});
+  RestingHeart({required this.time, required this.value});
 
   RestingHeart.fromJson(Map<String, dynamic> json)
     : time = DateTime.parse(json['time']),
-      value = json['value'],
-      error = json['error'];
-}//Steps
+      value = json['value'];
+}//RestingHeart
