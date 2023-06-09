@@ -113,7 +113,7 @@ static Future<List<Heart>> getHeart() async{
 
       final response = await http.get(
             Uri.parse(url), 
-            headers: headers);
+            headers: headers); 
       final List<Heart> result = [];
       if(response.statusCode == 200){
         final decodedResponse = jsonDecode(response.body);
