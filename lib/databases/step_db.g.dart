@@ -135,6 +135,20 @@ class _$StepDao extends StepDao {
   final DeletionAdapter<Steps_Daily> _steps_DailyDeletionAdapter;
 
   @override
+  Future<List<Steps_Daily>> findStepsbyDate(
+    DateTime startTime,
+    DateTime endTime,
+  ) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM Steps_Daily WHERE dateTime between ?1 and ?2 ORDER BY dateTime ASC',
+        mapper: (Map<String, Object?> row) => Steps_Daily(row['patient'] as String, row['day'] as String, row['time'] as String, row['value'] as int),
+        arguments: [
+          _dateTimeConverter.encode(startTime),
+          _dateTimeConverter.encode(endTime)
+        ]);
+  }
+
+  @override
   Future<List<Steps_Daily>> findAllSteps() async {
     return _queryAdapter.queryList('SELECT * FROM Steps_Daily',
         mapper: (Map<String, Object?> row) => Steps_Daily(
