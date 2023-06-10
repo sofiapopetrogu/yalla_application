@@ -85,7 +85,7 @@ class _$StepDatabase extends StepDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Steps_Daily` (`row_id` TEXT PRIMARY KEY AUTOINCREMENT NOT NULL, `patient_id` TEXT NOT NULL, `day` TEXT NOT NULL, `time` TEXT NOT NULL, `value` INTEGER NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `Steps_Daily` (`patient` TEXT NOT NULL, `day` TEXT NOT NULL, `time` TEXT NOT NULL, `value` INTEGER NOT NULL, PRIMARY KEY (`patient`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -108,8 +108,7 @@ class _$StepDao extends StepDao {
             database,
             'Steps_Daily',
             (Steps_Daily item) => <String, Object?>{
-                  'row_id': item.row_id,
-                  'patient_id': item.patient_id,
+                  'patient': item.patient,
                   'day': item.day,
                   'time': item.time,
                   'value': item.value
@@ -117,10 +116,9 @@ class _$StepDao extends StepDao {
         _steps_DailyDeletionAdapter = DeletionAdapter(
             database,
             'Steps_Daily',
-            ['row_id'],
+            ['patient'],
             (Steps_Daily item) => <String, Object?>{
-                  'row_id': item.row_id,
-                  'patient_id': item.patient_id,
+                  'patient': item.patient,
                   'day': item.day,
                   'time': item.time,
                   'value': item.value
@@ -140,8 +138,7 @@ class _$StepDao extends StepDao {
   Future<List<Steps_Daily>> findAllSteps() async {
     return _queryAdapter.queryList('SELECT * FROM Steps_Daily',
         mapper: (Map<String, Object?> row) => Steps_Daily(
-            row['row_id'] as String,
-            row['patient_id'] as String,
+            row['patient'] as String,
             row['day'] as String,
             row['time'] as String,
             row['value'] as int));
