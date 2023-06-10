@@ -10,7 +10,7 @@ import 'package:project_app/databases/step_table.dart';
 part 'step_db.g.dart'; 
 
 @Database(version: 1, entities: [Steps_Daily])
-abstract class AppDatabase extends FloorDatabase {
+abstract class StepDatabase extends FloorDatabase {
   StepDao get stepDao;
 }
 
