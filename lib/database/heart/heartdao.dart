@@ -1,4 +1,4 @@
-import 'package:project_app/databases/heart/heart_daily.dart';
+import 'package:project_app/database/heart/heart_daily.dart';
 import 'package:floor/floor.dart';
 
 //Here, we are saying that the following class defines a dao.
@@ -20,5 +20,9 @@ abstract class HeartDao {
   //Query #3: DELETE -> this allows to delete a row from the table
   @delete
   Future<void> deleteHeart(Heart_Daily heartdaily);
+
+  //Query #4: UPDATE -> this allows to update a HeartRate entry
+  @Update(onConflict: OnConflictStrategy.replace)
+  Future<void> updateHeartRate(Heart_Daily heartdaily);
 
 }//TodoDao

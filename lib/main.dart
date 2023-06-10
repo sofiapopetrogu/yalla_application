@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project_app/screens/loginpage.dart';
-import 'package:project_app/databases/db.dart';
+import 'package:project_app/database/db.dart';
 
 Future <void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

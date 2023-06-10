@@ -1,4 +1,4 @@
-import 'package:project_app/databases/steps/steps_daily.dart';
+import 'package:project_app/database/steps/steps_daily.dart';
 import 'package:floor/floor.dart';
 
 //Here, we are saying that the following class defines a dao.
@@ -20,5 +20,10 @@ abstract class StepDao {
   //Query #3: DELETE -> this allows to delete a row from the table
   @delete
   Future<void> deleteSteps(Steps_Daily stepsdaily);
+
+    //Query #4: UPDATE -> this allows to update a HeartRate entry
+  @Update(onConflict: OnConflictStrategy.replace)
+  Future<void> updateHeartRate(Steps_Daily stepsdaily);
+
 
 }//TodoDao
