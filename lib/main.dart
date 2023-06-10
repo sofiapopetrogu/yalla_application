@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:project_app/screens/loginpage.dart';
-import 'package:project_app/databases/step_db.dart';
+import 'package:project_app/databases/db.dart';
 
 Future <void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final StepDatabase database =
-      await $FloorStepDatabase.databaseBuilder('step_database.db').build();
+      await $FloorStepDatabase.databaseBuilder('database.db').build();
 
   runApp(const MyApp());
 } //main
