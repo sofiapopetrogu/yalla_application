@@ -1,4 +1,4 @@
-import 'package:project_app/databases/step_table.dart';
+import 'package:project_app/databases/steps_daily.dart';
 import 'package:floor/floor.dart';
 
 //Here, we are saying that the following class defines a dao.

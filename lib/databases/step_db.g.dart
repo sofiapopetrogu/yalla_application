@@ -155,3 +155,6 @@ class _$StepDao extends StepDao {
     await _steps_DailyDeletionAdapter.delete(steps_daily);
   }
 }
+
+// ignore_for_file: unused_element
+final _dateTimeConverter = DateTimeConverter();
