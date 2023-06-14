@@ -16,7 +16,7 @@ part 'db.g.dart';
 
 @TypeConverters([DateTimeConverter])
 @Database(version: 1, entities: [Patient, Steps_Daily, Heart_Daily])
-abstract class StepDatabase extends FloorDatabase {
+abstract class AppDatabase extends FloorDatabase {
   PatientDao get patientDao;
   StepDao get stepDao;
   HeartDao get heartDao;

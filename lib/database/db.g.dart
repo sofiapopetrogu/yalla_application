@@ -7,21 +7,21 @@ part of 'db.dart';
 // **************************************************************************
 
 // ignore: avoid_classes_with_only_static_members
-class $FloorStepDatabase {
+class $FloorAppDatabase {
   /// Creates a database builder for a persistent database.
   /// Once a database is built, you should keep a reference to it and re-use it.
-  static _$StepDatabaseBuilder databaseBuilder(String name) =>
-      _$StepDatabaseBuilder(name);
+  static _$AppDatabaseBuilder databaseBuilder(String name) =>
+      _$AppDatabaseBuilder(name);
 
   /// Creates a database builder for an in memory database.
   /// Information stored in an in memory database disappears when the process is killed.
   /// Once a database is built, you should keep a reference to it and re-use it.
-  static _$StepDatabaseBuilder inMemoryDatabaseBuilder() =>
-      _$StepDatabaseBuilder(null);
+  static _$AppDatabaseBuilder inMemoryDatabaseBuilder() =>
+      _$AppDatabaseBuilder(null);
 }
 
-class _$StepDatabaseBuilder {
-  _$StepDatabaseBuilder(this.name);
+class _$AppDatabaseBuilder {
+  _$AppDatabaseBuilder(this.name);
 
   final String? name;
 
@@ -30,23 +30,23 @@ class _$StepDatabaseBuilder {
   Callback? _callback;
 
   /// Adds migrations to the builder.
-  _$StepDatabaseBuilder addMigrations(List<Migration> migrations) {
+  _$AppDatabaseBuilder addMigrations(List<Migration> migrations) {
     _migrations.addAll(migrations);
     return this;
   }
 
   /// Adds a database [Callback] to the builder.
-  _$StepDatabaseBuilder addCallback(Callback callback) {
+  _$AppDatabaseBuilder addCallback(Callback callback) {
     _callback = callback;
     return this;
   }
 
   /// Creates the database and initializes it.
-  Future<StepDatabase> build() async {
+  Future<AppDatabase> build() async {
     final path = name != null
         ? await sqfliteDatabaseFactory.getDatabasePath(name!)
         : ':memory:';
-    final database = _$StepDatabase();
+    final database = _$AppDatabase();
     database.database = await database.open(
       path,
       _migrations,
@@ -56,8 +56,8 @@ class _$StepDatabaseBuilder {
   }
 }
 
-class _$StepDatabase extends StepDatabase {
-  _$StepDatabase([StreamController<String>? listener]) {
+class _$AppDatabase extends AppDatabase {
+  _$AppDatabase([StreamController<String>? listener]) {
     changeListener = listener ?? StreamController<String>.broadcast();
   }
 
