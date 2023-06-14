@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project_app/database/steps/steps_daily.dart';
 import 'package:project_app/screens/loginpage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -7,6 +8,10 @@ import 'package:project_app/screens/community.dart';
 import 'package:project_app/screens/settings.dart';
 import 'package:project_app/util/authentication.dart';
 import 'package:project_app/util/data_access.dart';
+import 'package:provider/provider.dart';
+import 'package:project_app/database/databaseRepository.dart';
+
+import '../database/db.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -20,6 +25,25 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: Text(HomePage.routename),
         backgroundColor: Colors.teal, // Set the background color to teal
+      ),
+      // await inserting data and then call other DAOs in the body
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          //clear table before inserting steps
+          await Provider.of<DatabaseRepository>(context, listen: false)
+              .deleteAllSteps();
+          final steps = await Data_Access.getStepWeek();
+          await Provider.of<DatabaseRepository>(context, listen: false).database.stepDao.insertMultSteps(
+            steps.map((step) => Steps_Daily(steps: step.value, dateTime: step.time, patient: step.patient)).toList()
+          );
+          (await Provider.of<DatabaseRepository>(context, listen: false).database.stepDao.findAllSteps()).forEach((element) {
+            print(element.steps);
+            print(element.dateTime);
+          });
+          
+          print("PEEPEEPOOPOO");
+        },
+        child: Icon(Icons.add),
       ),
       body: Center(
           child: Column(
@@ -56,6 +80,7 @@ class HomePage extends StatelessWidget {
                 onPressed: () async {
                   final sp = await SharedPreferences.getInstance();
                   final access = sp.getString('access');
+                  print(access);
                   final refresh = sp.getString('refresh');
                   final message = access == null
                       ? 'No stored tokens'

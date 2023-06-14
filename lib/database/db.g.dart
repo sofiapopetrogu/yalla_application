@@ -130,15 +130,6 @@ class _$PatientDao extends PatientDao {
                   'birthday': _dateTimeConverter.encode(item.birthday),
                   'sex': item.sex
                 }),
-        _patientUpdateAdapter = UpdateAdapter(
-            database,
-            'Patient',
-            ['id'],
-            (Patient item) => <String, Object?>{
-                  'id': item.id,
-                  'birthday': _dateTimeConverter.encode(item.birthday),
-                  'sex': item.sex
-                }),
         _patientDeletionAdapter = DeletionAdapter(
             database,
             'Patient',
@@ -156,8 +147,6 @@ class _$PatientDao extends PatientDao {
   final QueryAdapter _queryAdapter;
 
   final InsertionAdapter<Patient> _patientInsertionAdapter;
-
-  final UpdateAdapter<Patient> _patientUpdateAdapter;
 
   final DeletionAdapter<Patient> _patientDeletionAdapter;
 
@@ -177,11 +166,6 @@ class _$PatientDao extends PatientDao {
   }
 
   @override
-  Future<void> updatePatient(Patient patients) async {
-    await _patientUpdateAdapter.update(patients, OnConflictStrategy.fail);
-  }
-
-  @override
   Future<void> deletePatient(Patient patients) async {
     await _patientDeletionAdapter.delete(patients);
   }
@@ -195,16 +179,6 @@ class _$StepDao extends StepDao {
         _steps_DailyInsertionAdapter = InsertionAdapter(
             database,
             'Steps_Daily',
-            (Steps_Daily item) => <String, Object?>{
-                  'id': item.id,
-                  'steps': item.steps,
-                  'dateTime': _dateTimeConverter.encode(item.dateTime),
-                  'patient': item.patient
-                }),
-        _steps_DailyUpdateAdapter = UpdateAdapter(
-            database,
-            'Steps_Daily',
-            ['id'],
             (Steps_Daily item) => <String, Object?>{
                   'id': item.id,
                   'steps': item.steps,
@@ -229,8 +203,6 @@ class _$StepDao extends StepDao {
   final QueryAdapter _queryAdapter;
 
   final InsertionAdapter<Steps_Daily> _steps_DailyInsertionAdapter;
-
-  final UpdateAdapter<Steps_Daily> _steps_DailyUpdateAdapter;
 
   final DeletionAdapter<Steps_Daily> _steps_DailyDeletionAdapter;
 
@@ -259,15 +231,20 @@ class _$StepDao extends StepDao {
   }
 
   @override
+  Future<void> deleteAllSteps() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM Steps_Daily WHERE 1');
+  }
+
+  @override
   Future<void> insertSteps(Steps_Daily stepsdaily) async {
     await _steps_DailyInsertionAdapter.insert(
         stepsdaily, OnConflictStrategy.abort);
   }
 
   @override
-  Future<void> updateHeartRate(Steps_Daily stepsdaily) async {
-    await _steps_DailyUpdateAdapter.update(
-        stepsdaily, OnConflictStrategy.replace);
+  Future<void> insertMultSteps(List<Steps_Daily> stepsdaily) async {
+    await _steps_DailyInsertionAdapter.insertList(
+        stepsdaily, OnConflictStrategy.abort);
   }
 
   @override
@@ -284,16 +261,6 @@ class _$HeartDao extends HeartDao {
         _heart_DailyInsertionAdapter = InsertionAdapter(
             database,
             'Heart_Daily',
-            (Heart_Daily item) => <String, Object?>{
-                  'id': item.id,
-                  'heart': item.heart,
-                  'dateTime': _dateTimeConverter.encode(item.dateTime),
-                  'patient': item.patient
-                }),
-        _heart_DailyUpdateAdapter = UpdateAdapter(
-            database,
-            'Heart_Daily',
-            ['id'],
             (Heart_Daily item) => <String, Object?>{
                   'id': item.id,
                   'heart': item.heart,
@@ -318,8 +285,6 @@ class _$HeartDao extends HeartDao {
   final QueryAdapter _queryAdapter;
 
   final InsertionAdapter<Heart_Daily> _heart_DailyInsertionAdapter;
-
-  final UpdateAdapter<Heart_Daily> _heart_DailyUpdateAdapter;
 
   final DeletionAdapter<Heart_Daily> _heart_DailyDeletionAdapter;
 
@@ -348,15 +313,14 @@ class _$HeartDao extends HeartDao {
   }
 
   @override
-  Future<void> insertHeart(Heart_Daily heartdaily) async {
-    await _heart_DailyInsertionAdapter.insert(
-        heartdaily, OnConflictStrategy.abort);
+  Future<void> deleteAllHeart() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM Heart_Daily WHERE 1');
   }
 
   @override
-  Future<void> updateHeartRate(Heart_Daily heartdaily) async {
-    await _heart_DailyUpdateAdapter.update(
-        heartdaily, OnConflictStrategy.replace);
+  Future<void> insertHeart(Heart_Daily heartdaily) async {
+    await _heart_DailyInsertionAdapter.insert(
+        heartdaily, OnConflictStrategy.abort);
   }
 
   @override

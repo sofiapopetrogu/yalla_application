@@ -26,7 +26,8 @@ static Future<List<Steps>> getStep() async{
       }
 
       final day = '2023-05-15';
-      final url = Impact.baseUrl + Impact.stepEndpoint + 'patients/Jpefaq6m58/' + 'day/$day/';
+      final patient = 'Jpefaq6m58';
+      final url = Impact.baseUrl + Impact.stepEndpoint + 'patients/$patient/' + 'day/$day/';
 
       final headers = {
         HttpHeaders.authorizationHeader: 'Bearer $access' //user must be authenticated to access this endpoint
@@ -44,7 +45,7 @@ static Future<List<Steps>> getStep() async{
           final dataEntry = decodedResponse['data']['data'][i];
           //result.add(Steps.fromJson(dataEntry));
 
-          result.add(Steps(time: DateTime.parse(day + ' ' + dataEntry['time']), value: int.parse(dataEntry['value'])));
+          result.add(Steps(time: DateTime.parse(day + ' ' + dataEntry['time']), value: int.parse(dataEntry['value']), patient: patient));
         }
       }
       print(response.body);
@@ -167,4 +168,46 @@ static Future<List<Heart>> getHeart() async{
       return result;
     }
   } //getHeart */
+
+  static Future<List<Steps>> getStepWeek() async{
+    final sp = await SharedPreferences.getInstance();
+    final access = sp.getString('access'); //request access token, will be null if not present
+    if(access == null){
+      return List.empty();
+    }
+    else{
+      if(JwtDecoder.isExpired(access)){
+        await Authentication.refreshTokens(); //refresh token if expired
+        var access = sp.getString('access');
+      }
+
+      
+      final patient = 'Jpefaq6m58';
+      final start_date = '2023-05-01';
+      final end_date = '2023-05-07';
+      final url = Impact.baseUrl + Impact.stepEndpoint + 'patients/$patient/' + 'daterange/start_date/$start_date/' + 'end_date/$end_date/';
+
+      final headers = {
+        HttpHeaders.authorizationHeader: 'Bearer $access' //user must be authenticated to access this endpoint
+      };
+
+      final response = await http.get(
+            Uri.parse(url), 
+            headers: headers);
+      final List<Steps> result = [];
+      if(response.statusCode == 200){
+        final decodedResponse = jsonDecode(response.body);
+        
+        
+        for(var i = 0; i < decodedResponse['data'].length; i++){
+          final dayEntry = decodedResponse['data'][i];
+          dayEntry['data'].forEach((dataEntry) {
+            result.add(Steps(time: DateTime.parse(dayEntry['date'] + ' ' + dataEntry['time']), value: int.parse(dataEntry['value']), patient: patient));
+          });
+        }
+      }
+      print(response.body);
+      return result;
+    }
+  } //getStepWeek
 }//Data_Access

@@ -1,10 +1,11 @@
 class Steps{
   final DateTime time;
   final int value;
+  final String patient;
 
-  Steps({required this.time, required this.value});
+  Steps({required this.time, required this.value, required this.patient});
 
-  Steps.fromJson(Map<String, dynamic> json)
+  Steps.fromJson(Map<String, dynamic> json, this.patient)
     : time = DateTime.parse(json['time']),
       value = json['value'];
 }//Steps

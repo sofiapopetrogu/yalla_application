@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:project_app/screens/loginpage.dart';
 import 'package:project_app/database/db.dart';
+import 'package:project_app/database/databaseRepository.dart';
+import 'package:provider/provider.dart';
 
 Future <void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final StepDatabase database =
-      await $FloorStepDatabase.databaseBuilder('database.db').build();
+  final AppDatabase database =
+      await $FloorAppDatabase.databaseBuilder('database.db').build();
+  //This creates a new DatabaseRepository from the AppDatabase instance just initialized
+  final databaseRepository = DatabaseRepository(database: database);
 
-  runApp(const MyApp());
+  runApp(ChangeNotifierProvider<DatabaseRepository>(
+    create: (context) => databaseRepository,
+    child: MyApp(),
+  ));  
 } //main
 
 class MyApp extends StatelessWidget {
@@ -32,5 +39,5 @@ class MyApp extends StatelessWidget {
       ),
       home: LoginPage(),
     );
-  }
-}
+  } //build
+}//MyApp

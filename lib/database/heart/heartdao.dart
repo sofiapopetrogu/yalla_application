@@ -21,8 +21,12 @@ abstract class HeartDao {
   @delete
   Future<void> deleteHeart(Heart_Daily heartdaily);
 
+  //Query #4:  Delete all entries from table
+  @Query('DELETE FROM Heart_Daily WHERE 1')
+  Future<void> deleteAllHeart();
+
   //Query #4: UPDATE -> this allows to update a HeartRate entry
-  @Update(onConflict: OnConflictStrategy.replace)
-  Future<void> updateHeartRate(Heart_Daily heartdaily);
+  /* @Update(onConflict: OnConflictStrategy.replace)
+  Future<void> updateHeartRate(Heart_Daily heartdaily); */
 
 }//TodoDao
