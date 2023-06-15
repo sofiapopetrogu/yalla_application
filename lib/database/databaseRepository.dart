@@ -67,12 +67,7 @@ class DatabaseRepository extends ChangeNotifier{
     await database.stepDao.deleteAllSteps();
     notifyListeners();
   }//deleteAllSteps
-  
-  //This method wraps the findStepsbyDate() method of the DAO. 
-  Future<List<Steps_Daily>> findStepsbyDate(DateTime startTime, DateTime endTime) async{
-    final results = await database.stepDao.findStepsbyDate(startTime, endTime);
-    return results;
-  }//findStepbyDate
+
 
   //This method wraps the findAllSteps() method of the DAO. 
   Future<List<Steps_Daily>> findAllSteps() async{

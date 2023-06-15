@@ -169,7 +169,7 @@ static Future<List<Heart>> getHeart() async{
     }
   } //getHeart */
 
-  static Future<List<Steps>> getStepWeek() async{
+  static Future<List<Steps>> getStepWeek(DateTime start, DateTime end) async{
     final sp = await SharedPreferences.getInstance();
     final access = sp.getString('access'); //request access token, will be null if not present
     if(access == null){
@@ -183,8 +183,8 @@ static Future<List<Heart>> getHeart() async{
 
       
       final patient = 'Jpefaq6m58';
-      final start_date = '2023-05-01';
-      final end_date = '2023-05-07';
+      final start_date = "${start.year.toString()}-${start.month.toString().padLeft(2,'0')}-${start.day.toString().padLeft(2,'0')}";
+      final end_date = "${end.year.toString()}-${end.month.toString().padLeft(2,'0')}-${end.day.toString().padLeft(2,'0')}";
       final url = Impact.baseUrl + Impact.stepEndpoint + 'patients/$patient/' + 'daterange/start_date/$start_date/' + 'end_date/$end_date/';
 
       final headers = {
@@ -206,7 +206,7 @@ static Future<List<Heart>> getHeart() async{
           });
         }
       }
-      print(response.body);
+
       return result;
     }
   } //getStepWeek
