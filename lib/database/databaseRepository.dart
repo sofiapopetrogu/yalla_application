@@ -68,6 +68,10 @@ class DatabaseRepository extends ChangeNotifier{
     notifyListeners();
   }//deleteAllSteps
 
+  Future<void> deleteAllHeart() async{
+    await database.heartDao.deleteAllHeart();
+    notifyListeners();
+  }//deleteAllSteps
 
   //This method wraps the findAllSteps() method of the DAO. 
   Future<List<Steps_Daily>> findAllSteps() async{

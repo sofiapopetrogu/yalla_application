@@ -1,5 +1,6 @@
 import 'package:project_app/database/heart/heart_daily.dart';
 import 'package:floor/floor.dart';
+import 'package:project_app/models/heart.dart';
 
 //Here, we are saying that the following class defines a dao.
 
@@ -16,6 +17,8 @@ abstract class HeartDao {
   //Query #2: INSERT -> this allows to add a row in the table
   @insert
   Future<void> insertHeart(Heart_Daily heartdaily); // void ensures that the results are not returned
+    @insert
+  Future<void> insertMultHeart(List<Heart_Daily> heartdaily);
 
   //Query #3: DELETE -> this allows to delete a row from the table
   @delete

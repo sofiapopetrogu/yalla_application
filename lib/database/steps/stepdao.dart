@@ -5,42 +5,6 @@ import 'package:floor/floor.dart';
 
 @dao
 abstract class StepDao {
-  //Query #0: SELECT -> this allows to obtain all the entries of the Steps_Daily table of a certain date
-  @Query("""SELECT CONCAT(date, '|||', steps) FROM (SELECT DATE(dateTime) as date,
-    AVG(steps) AS steps
-  FROM 
-    Steps_Daily
-WHERE 
-    dateTime BETWEEN :startTime AND :endTime
-GROUP BY DATE(dateTime)
-ORDER BY 
-    date ASC;) as tmp""") 
-  Future<List<String>?> findStepsbyDateDaily(DateTime startTime, DateTime endTime);
-
-
-  @Query("""SELECT CONCAT(DATE(dateTime), ' ', HOUR(dateTime), CONCAT(':', '00', ':', '00')) as date,
-    AVG(steps) AS steps
-  FROM 
-    Steps_Daily
-WHERE 
-    dateTime BETWEEN :startTime AND :endTime
-GROUP BY CONCAT(DATE(dateTime), ' ', HOUR(dateTime), CONCAT(':', '00', ':', '00'))
-ORDER BY 
-    date ASC;""")
-  Future<List<String>?> findStepsbyDateHourly(DateTime startTime, DateTime endTime);
-
-
-  @Query("""SELECT CONCAT(DATE(dateTime), ' ', HOUR(dateTime), ':', MINUTE(dateTime), CONCAT(':','00')) as date,
-    AVG(steps) AS steps
-  FROM 
-    Steps_Daily
-WHERE 
-    dateTime BETWEEN :startTime AND :endTime
-GROUP BY CONCAT(DATE(dateTime), ' ', HOUR(dateTime), ':', MINUTE(dateTime), CONCAT(':','00'))
-ORDER BY 
-    date ASC;""")
-  Future<List<String>?> findStepsbyDateMinute(DateTime startTime, DateTime endTime);
-
   //Query #1: SELECT -> this allows to obtain all the entries of the steps_daily table
   @Query('SELECT * FROM Steps_Daily')
   Future<List<Steps_Daily>> findAllSteps();

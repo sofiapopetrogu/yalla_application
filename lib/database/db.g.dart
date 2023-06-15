@@ -207,48 +207,6 @@ class _$StepDao extends StepDao {
   final DeletionAdapter<Steps_Daily> _steps_DailyDeletionAdapter;
 
   @override
-  Future<List<String>?> findStepsbyDateDaily(
-    DateTime startTime,
-    DateTime endTime,
-  ) async {
-    return _queryAdapter.queryList(
-        'SELECT CONCAT(date, \'|||\', steps) FROM (SELECT DATE(dateTime) as date,     AVG(steps) AS steps   FROM      Steps_Daily WHERE      dateTime BETWEEN ?1 AND ?2 GROUP BY DATE(dateTime) ORDER BY      date ASC;) as tmp',
-        mapper: (Map<String, Object?> row) => row.values.first as String,
-        arguments: [
-          _dateTimeConverter.encode(startTime),
-          _dateTimeConverter.encode(endTime)
-        ]);
-  }
-
-  @override
-  Future<List<String>?> findStepsbyDateHourly(
-    DateTime startTime,
-    DateTime endTime,
-  ) async {
-    return _queryAdapter.queryList(
-        'SELECT CONCAT(DATE(dateTime), \' \', HOUR(dateTime), CONCAT(\':\', \'00\', \':\', \'00\')) as date,     AVG(steps) AS steps   FROM      Steps_Daily WHERE      dateTime BETWEEN ?1 AND ?2 GROUP BY CONCAT(DATE(dateTime), \' \', HOUR(dateTime), CONCAT(\':\', \'00\', \':\', \'00\')) ORDER BY      date ASC;',
-        mapper: (Map<String, Object?> row) => row.values.first as String,
-        arguments: [
-          _dateTimeConverter.encode(startTime),
-          _dateTimeConverter.encode(endTime)
-        ]);
-  }
-
-  @override
-  Future<List<String>?> findStepsbyDateMinute(
-    DateTime startTime,
-    DateTime endTime,
-  ) async {
-    return _queryAdapter.queryList(
-        'SELECT CONCAT(DATE(dateTime), \' \', HOUR(dateTime), \':\', MINUTE(dateTime), CONCAT(\':\',\'00\')) as date,     AVG(steps) AS steps   FROM      Steps_Daily WHERE      dateTime BETWEEN ?1 AND ?2 GROUP BY CONCAT(DATE(dateTime), \' \', HOUR(dateTime), \':\', MINUTE(dateTime), CONCAT(\':\',\'00\')) ORDER BY      date ASC;',
-        mapper: (Map<String, Object?> row) => row.values.first as String,
-        arguments: [
-          _dateTimeConverter.encode(startTime),
-          _dateTimeConverter.encode(endTime)
-        ]);
-  }
-
-  @override
   Future<List<Steps_Daily>> findAllSteps() async {
     return _queryAdapter.queryList('SELECT * FROM Steps_Daily',
         mapper: (Map<String, Object?> row) => Steps_Daily(
@@ -348,6 +306,12 @@ class _$HeartDao extends HeartDao {
   @override
   Future<void> insertHeart(Heart_Daily heartdaily) async {
     await _heart_DailyInsertionAdapter.insert(
+        heartdaily, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<void> insertMultHeart(List<Heart_Daily> heartdaily) async {
+    await _heart_DailyInsertionAdapter.insertList(
         heartdaily, OnConflictStrategy.abort);
   }
 

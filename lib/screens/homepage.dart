@@ -1,5 +1,4 @@
 import 'package:fl_animated_linechart/common/pair.dart';
-import 'package:floor/floor.dart';
 import 'package:flutter/material.dart';
 import 'package:project_app/database/steps/steps_daily.dart';
 import 'package:project_app/screens/loginpage.dart';
@@ -15,6 +14,7 @@ import 'package:project_app/database/databaseRepository.dart';
 import 'package:fl_animated_linechart/fl_animated_linechart.dart';
 
 import '../database/db.dart';
+import '../database/heart/heart_daily.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -23,13 +23,14 @@ class HomePage extends StatefulWidget {
 
   @override
   _HomePageState createState() => _HomePageState();
-}
+} 
 
 class _HomePageState extends State<HomePage> {
   Map<DateTime, double> stepsList = Map();
+  Map<DateTime, double> heartList = Map();
   DateTime startdate = DateTime.now().subtract(Duration(days: 8));
   DateTime enddate = DateTime.now().subtract(Duration(days: 1));
-  String mycondition = "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':' || strftime('%M',  dateTime / 1000, 'unixepoch') || ':00'";
+  String mycondition = "DATE(dateTime / 1000, 'unixepoch') ";
   /*
       for group by day
       DATE(dateTime / 1000, 'unixepoch') 
@@ -38,6 +39,8 @@ class _HomePageState extends State<HomePage> {
       for group by minute
       DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':' || strftime('%M',  dateTime / 1000, 'unixepoch') || ':00'
    */
+  String timewindow = "Week";
+  String groupby = "Day";
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +59,15 @@ class _HomePageState extends State<HomePage> {
           //clear table before inserting steps
           await Provider.of<DatabaseRepository>(context, listen: false)
               .deleteAllSteps();
-          final steps = await Data_Access.getStepWeek(startdate, enddate);
+          await Provider.of<DatabaseRepository>(context, listen: false)
+              .deleteAllHeart();
+          await Authentication.getAndStoreTokens();
+          final steps = await Data_Access.getStepWeek(
+            DateTime.now().subtract(Duration(days: 8)),
+            DateTime.now().subtract(Duration(days: 1)));
+          final hearts = await Data_Access.getHeartWeek(
+            DateTime.now().subtract(Duration(days: 8)),
+            DateTime.now().subtract(Duration(days: 1)));
           await Provider.of<DatabaseRepository>(context, listen: false)
               .database
               .stepDao
@@ -66,155 +77,194 @@ class _HomePageState extends State<HomePage> {
                       dateTime: step.time,
                       patient: step.patient))
                   .toList());
-
-          final AppDatabase database = await $FloorAppDatabase.databaseBuilder('database.db').build();
-          final start_date = startdate.millisecondsSinceEpoch;
-          final end_date = enddate.millisecondsSinceEpoch;
-
-          final List<Pair<DateTime, double>> list = (await database.database.rawQuery("""
-            SELECT $mycondition as date,
-              AVG(steps) AS steps
-            FROM 
-              Steps_Daily
-            WHERE 
-              dateTime > $start_date AND dateTime < $end_date
-            GROUP BY $mycondition
-            ORDER BY 
-              date ASC;""")).map((e) {
-                print(e);
-                return e;
-              }).map( 
-                (e) => Pair(DateTime.parse(e['date'] as String), e['steps'] as double)
-              ).toList();
-
+          await Provider.of<DatabaseRepository>(context, listen: false)
+              .database
+              .heartDao
+              .insertMultHeart(hearts
+                  .map((heart) => Heart_Daily(
+                      heart: heart.value,
+                      dateTime: heart.time,
+                      patient: heart.patient))
+                  .toList());
+          
+          final datastep = await getMapStep(startdate, enddate, mycondition);
+          final dataheart = await getMapHeart(startdate, enddate, mycondition);
+         
           setState(() {
-              stepsList = { for (var item in list)   item.left:item.right };;
+              stepsList = datastep;
+              heartList = dataheart;
           });
 
         },
-        child: Icon(Icons.add),
+        child: Icon(Icons.update), backgroundColor: Colors.teal,
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-                onPressed: () async {
-                  final result = await Authentication.isImpactUp();
-                  final message = result
-                      ? 'IMPACT backend is up!'
-                      : 'IMPACT backend is down!';
-                  ScaffoldMessenger.of(context)
-                    ..removeCurrentSnackBar()
-                    ..showSnackBar(SnackBar(content: Text(message)));
+          children:  <Widget>[
+            Text('Timeframe'),
+            ListTile(
+              title: const Text('Week'),
+              leading: Radio<String>(
+                value: 'Week',
+                groupValue: timewindow,
+                //if I'm selected, groupvalue will match value showing the filled button
+                onChanged: (String? value) async{
+                  final datastep = await getMapStep(enddate.subtract(Duration(days: 7)), enddate, mycondition);
+                  final dataheart = await getMapHeart(enddate.subtract(Duration(days: 7)), enddate, mycondition);
+                  setState(() {
+                    print("selected week");
+                    timewindow = 'Week';
+                    startdate = enddate.subtract(Duration(days: 7));
+                    stepsList = datastep;
+                    heartList = dataheart;
+                  });
                 },
-                child: Text('Ping IMPACT')),
-            SizedBox(
-              height: 10,
+              ),
             ),
-            ElevatedButton(
-                onPressed: () async {
-                  final result = await Authentication.getAndStoreTokens();
-                  final message =
-                      result == 200 ? 'Request successful' : 'Request failed';
-                  ScaffoldMessenger.of(context)
-                    ..removeCurrentSnackBar()
-                    ..showSnackBar(SnackBar(content: Text(message)));
+          ListTile(
+              title: const Text('Day'),
+              leading: Radio<String>(
+                value: 'Day',
+                groupValue: timewindow,
+                //if I'm selected, groupvalue will match value showing the filled button
+                onChanged: (String? value) async{
+                  final datastep = await getMapStep(enddate.subtract(Duration(days: 1)), enddate, mycondition);
+                  final dataheart = await getMapHeart(enddate.subtract(Duration(days: 1)), enddate, mycondition);
+                  setState(() {
+                    print("selected day");
+                    timewindow = 'Day';
+                    startdate = enddate.subtract(Duration(days: 1));
+                    stepsList = datastep;
+                    heartList = dataheart;
+                  });
                 },
-                child: Text('Get tokens')),
-            SizedBox(
-              height: 10,
+              ),
             ),
-            ElevatedButton(
-                onPressed: () async {
-                  final sp = await SharedPreferences.getInstance();
-                  final access = sp.getString('access');
-                  print(access);
-                  final refresh = sp.getString('refresh');
-                  final message = access == null
-                      ? 'No stored tokens'
-                      : 'access: $access; refresh: $refresh';
-                  ScaffoldMessenger.of(context)
-                    ..removeCurrentSnackBar()
-                    ..showSnackBar(SnackBar(content: Text(message)));
+            ListTile(
+              title: const Text('Hour'),
+              leading: Radio<String>(
+                value: 'Hour',
+                groupValue: timewindow,
+                //if I'm selected, groupvalue will match value showing the filled button
+                onChanged: (String? value) async {
+                  final datastep = await getMapStep(enddate.subtract(Duration(hours: 1)), enddate, mycondition);
+                  final dataheart = await getMapHeart(enddate.subtract(Duration(hours: 1)), enddate, mycondition);
+                  setState(() {
+                    print("selected hour");
+                    timewindow = 'Hour';
+                    startdate = enddate.subtract(Duration(hours: 1));
+                    stepsList = datastep;
+                    heartList = dataheart;
+                  });
                 },
-                child: Text('Print tokens')),
-            SizedBox(
-              height: 10,
+              ),
             ),
-            ElevatedButton(
-                onPressed: () async {
-                  final sp = await SharedPreferences.getInstance();
-                  final refresh = sp.getString('refresh');
-                  final message;
-                  if (refresh == null) {
-                    message = 'No stored tokens';
-                  } else {
-                    final result = await Authentication.refreshTokens();
-                    message =
-                        result == 200 ? 'Request successful' : 'Request failed';
-                  } //if-else
-                  ScaffoldMessenger.of(context)
-                    ..removeCurrentSnackBar()
-                    ..showSnackBar(SnackBar(content: Text(message)));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  /*
+      for group by day
+      DATE(dateTime / 1000, 'unixepoch') 
+      for group by hour
+      DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':00:00'
+      for group by minute
+      DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':' || strftime('%M',  dateTime / 1000, 'unixepoch') || ':00'
+   */
+
+
+
+
+            Text('Grouping'),
+            
+          ListTile(
+              title: const Text('Day'),
+              leading: Radio<String>(
+                value: 'Day',
+                groupValue: groupby,
+                //if I'm selected, groupvalue will match value showing the filled button
+                onChanged: (String? value) async{
+                  final datastep = await getMapStep(startdate, enddate, "DATE(dateTime / 1000, 'unixepoch')");
+                  final dataheart = await getMapHeart(startdate, enddate, "DATE(dateTime / 1000, 'unixepoch')");
+                  setState(() {
+                    print("selected day");
+                    groupby = 'Day';
+                    mycondition = "DATE(dateTime / 1000, 'unixepoch')";
+                    stepsList = datastep;
+                    heartList = dataheart;
+                  });
                 },
-                child: Text('Refresh tokens')),
-            SizedBox(
-              height: 10,
+              ),
             ),
-            ElevatedButton(
-                onPressed: () async {
-                  final sp = await SharedPreferences.getInstance();
-                  await sp.remove('access');
-                  await sp.remove('refresh');
-                  ScaffoldMessenger.of(context)
-                    ..removeCurrentSnackBar()
-                    ..showSnackBar(
-                        SnackBar(content: Text('Tokens have been deleted')));
+            ListTile(
+              title: const Text('Hour'),
+              leading: Radio<String>(
+                value: 'Hour',
+                groupValue: groupby,
+                //if I'm selected, groupvalue will match value showing the filled button
+                onChanged: (String? value) async {
+                  final datastep = await getMapStep(startdate, enddate, "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':00:00'");
+                  final dataheart = await getMapHeart(startdate, enddate, "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':00:00'");
+                  setState(() {
+                    print("selected hour");
+                    groupby = 'Hour';
+                    mycondition = "DATE(dateTime / 1000, 'unixepoch')";
+                    stepsList = datastep;
+                    heartList = dataheart;
+                  });
                 },
-                child: Text('Delete tokens')),
-            ElevatedButton(
-                onPressed: () async {
-                  //final statusOK = await Data_Access.getStep();
-
-                  //final message = statusOK
-                  //   ? 'Request successful'
-                  // : 'Request failed';
-
-                  final steps = await Data_Access.getStep();
-
-                  //convert list to string
-                  var final_message = steps
-                      .map((e) => e.time.toString() + ' ' + e.value.toString())
-                      .join('\n');
-
-                  ScaffoldMessenger.of(context)
-                    ..removeCurrentSnackBar()
-                    ..showSnackBar(SnackBar(content: Text(final_message)));
+              ),
+            ),
+            ListTile(
+              title: const Text('Minute'),
+              leading: Radio<String>(
+                value: 'Minute',
+                groupValue: groupby,
+                //if I'm selected, groupvalue will match value showing the filled button
+                onChanged: (String? value) async {
+                  final datastep = await getMapStep(startdate, enddate, "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':' || strftime('%M',  dateTime / 1000, 'unixepoch') || ':00'");
+                  final dataheart = await getMapHeart(startdate, enddate, "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':' || strftime('%M',  dateTime / 1000, 'unixepoch') || ':00'");
+                  setState(() {
+                    print("selected minute");
+                    groupby = 'Minute';
+                    mycondition = "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':' || strftime('%M',  dateTime / 1000, 'unixepoch') || ':00'";
+                    stepsList = datastep;
+                    heartList = dataheart;
+                  });
                 },
-                child: Text('Get Step Day')),
-            ElevatedButton(
-                onPressed: () async {
-                  //final statusOK = await Data_Access.getStep();
+              ),
+            ),
 
-                  //final message = statusOK
-                  //   ? 'Request successful'
-                  // : 'Request failed';
 
-                  final heart = await Data_Access.getHeart();
 
-                  //convert list to string
-                  var final_message = heart
-                      .map((e) => e.time.toString() + ' ' + e.value.toString())
-                      .join('\n');
 
-                  ScaffoldMessenger.of(context)
-                    ..removeCurrentSnackBar()
-                    ..showSnackBar(SnackBar(content: Text(final_message)));
-                },
-                child: Text('Get Heart Day')),
-            stepPlot,
-          ],
+
+
+
+
+
+
+
+
+          ]+[stepPlot],
         ),
       ),
       drawer: Drawer(
@@ -340,4 +390,44 @@ class _HomePageState extends State<HomePage> {
       ))
     ]);
   } //buildPlotWithData
+
+  Future<Map<DateTime, double>> getMapStep(startdate, enddate, mycondition) async {
+    final AppDatabase database = await $FloorAppDatabase.databaseBuilder('database.db').build();
+    final start_date = startdate.millisecondsSinceEpoch;
+    final end_date = enddate.millisecondsSinceEpoch;
+
+    final List<Pair<DateTime, double>> list = (await database.database.rawQuery("""
+      SELECT $mycondition as date,
+        AVG(steps) AS steps
+      FROM 
+        Steps_Daily
+      WHERE 
+        dateTime > $start_date AND dateTime < $end_date
+      GROUP BY $mycondition
+      ORDER BY 
+        date ASC;""")).map( 
+          (e) => Pair(DateTime.parse(e['date'] as String), e['steps'] as double)
+        ).toList();
+    return { for (var item in list) item.left:item.right };
+  } //getMap
+
+  Future<Map<DateTime, double>> getMapHeart(startdate, enddate, mycondition) async {
+    final AppDatabase database = await $FloorAppDatabase.databaseBuilder('database.db').build();
+    final start_date = startdate.millisecondsSinceEpoch;
+    final end_date = enddate.millisecondsSinceEpoch;
+
+    final List<Pair<DateTime, double>> list = (await database.database.rawQuery("""
+      SELECT $mycondition as date,
+        AVG(heart) AS heart
+      FROM 
+        Heart_Daily
+      WHERE 
+        dateTime > $start_date AND dateTime < $end_date
+      GROUP BY $mycondition
+      ORDER BY 
+        date ASC;""")).map( 
+          (e) => Pair(DateTime.parse(e['date'] as String), e['heart'] as double)
+        ).toList();
+    return { for (var item in list) item.left:item.right };
+  } //getMap
 } //HomePage
