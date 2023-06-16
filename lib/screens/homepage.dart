@@ -28,8 +28,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   Map<DateTime, double> stepsList = Map();
   Map<DateTime, double> heartList = Map();
-  DateTime startdate = DateTime.now().subtract(Duration(days: 8));
-  DateTime enddate = DateTime.now().subtract(Duration(days: 1));
+  DateTime enddate = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day).subtract(Duration(seconds: 1));
+  DateTime startdate = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day).subtract(Duration(seconds: 1)).subtract(Duration(days: 7));
   String mycondition = "DATE(dateTime / 1000, 'unixepoch') ";
   /*
       for group by day
@@ -46,7 +46,10 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     //initialize stepPlot
 
-    Container stepPlot = _buildPlot(context, stepsList);
+    Container stepPlot = _buildPlotSteps(context, stepsList);
+    Container heartPlot = _buildPlotHeart(context, heartList); 
+    print(startdate);
+    print(enddate);
 
     return Scaffold(
       appBar: AppBar(
@@ -98,7 +101,7 @@ class _HomePageState extends State<HomePage> {
         },
         child: Icon(Icons.update), backgroundColor: Colors.teal,
       ),
-      body: Center(
+      body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children:  <Widget>[
@@ -264,7 +267,7 @@ class _HomePageState extends State<HomePage> {
 
 
 
-          ]+[stepPlot],
+          ]+[stepPlot,heartPlot],
         ),
       ),
       drawer: Drawer(
@@ -347,7 +350,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   //Function to built plot for steps
-  Container _buildPlot(BuildContext context, Map<DateTime, double> steps) {
+  Container _buildPlotSteps(BuildContext context, Map<DateTime, double> steps) {
     return Container(
       height: 200,
       child: Card(
@@ -356,18 +359,18 @@ class _HomePageState extends State<HomePage> {
           child: steps.isEmpty
               ? Center(
                   child: Text(
-                    'No steps data',
+                    'No data',
                     style: Theme.of(context).textTheme.headline6,
                   ),
                 )
-              : _buildPlotWithData(context, steps),
+              : _buildPlotWithDataSteps(context, steps),
         ),
       ),
     );
-  } //buildPlot
+  } //buildPlotSteps
 
   //Function to build plot with data
-  Widget _buildPlotWithData(BuildContext context, Map<DateTime, double> steps) {
+  Widget _buildPlotWithDataSteps(BuildContext context, Map<DateTime, double> steps) {
 
     LineChart chart;
 
@@ -389,7 +392,7 @@ class _HomePageState extends State<HomePage> {
         toolTipColor: Colors.black,
       ))
     ]);
-  } //buildPlotWithData
+  } //buildPlotWithDataSteps
 
   Future<Map<DateTime, double>> getMapStep(startdate, enddate, mycondition) async {
     final AppDatabase database = await $FloorAppDatabase.databaseBuilder('database.db').build();
@@ -430,4 +433,49 @@ class _HomePageState extends State<HomePage> {
         ).toList();
     return { for (var item in list) item.left:item.right };
   } //getMap
+
+  //Function to built plot for steps
+  Container _buildPlotHeart(BuildContext context, Map<DateTime, double> hearts) {
+    return Container(
+      height: 200,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: hearts.isEmpty
+              ? Center(
+                  child: Text(
+                    'No data',
+                    style: Theme.of(context).textTheme.headline6,
+                  ),
+                )
+              : _buildPlotWithDataHeart(context, hearts),
+        ),
+      ),
+    );
+  } //buildPlotSteps
+
+  //Function to build plot with data
+  Widget _buildPlotWithDataHeart(BuildContext context, Map<DateTime, double> hearts) {
+
+    LineChart chart;
+
+    chart = LineChart.fromDateTimeMaps(
+      [hearts],
+      [Colors.blue],
+      ['Heart Rate'],
+      //showLegends: true,
+      //legendPosition: LegendPosition.bottom,
+      //legendStyle: TextStyle(color: Colors.black),
+      //chartValueStyle: TextStyle(color: Colors.black),
+      //dateTimeFactory: const LocalDateTimeFactory(),
+    );
+    return Column(children: [
+      Expanded(
+          child: AnimatedLineChart(
+        chart,
+        gridColor: Colors.black,
+        toolTipColor: Colors.black,
+      ))
+    ]);
+  } //buildPlotWithDataSteps
 } //HomePage
