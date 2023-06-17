@@ -9,8 +9,52 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:project_app/models/steps.dart';
 import 'package:project_app/models/heart.dart';
+import 'package:project_app/models/patient.dart';
+import '../database/patients/patients.dart';
 
 class Data_Access {
+
+  static Future<List<Patients>> getPatients() async{
+    final sp = await SharedPreferences.getInstance();
+    final access = sp.getString('access'); //request access token, will be null if not present
+    if(access == null){
+      return List.empty();
+    }
+    else{
+      if(JwtDecoder.isExpired(access)){
+        await Authentication.refreshTokens(); //refresh token if expired
+        var access = sp.getString('access');
+      }
+
+      final url = Impact.baseUrl + Impact.patientEndpoint;
+
+      final headers = {
+        HttpHeaders.authorizationHeader: 'Bearer $access' //user must be authenticated to access this endpoint
+      };
+
+      final response = await http.get(
+            Uri.parse(url), 
+            headers: headers);
+            print(response);
+      final List<Patients> result = [];
+      if(response.statusCode == 200){
+        final decodedResponse = jsonDecode(response.body);
+        
+        
+        for(var i = 0; i < decodedResponse['data'].length; i++){
+          final dataEntry = decodedResponse['data'][i];
+          print(dataEntry);
+
+          result.add(Patients(
+            username: dataEntry['username'],
+            birthyear : dataEntry['birth_year'],
+            displayname : dataEntry['display_name']));
+        }
+      }
+      return result;
+    }
+  } //getStep
+
 
 static Future<List<Steps>> getStep() async{
     final sp = await SharedPreferences.getInstance();
@@ -91,7 +135,7 @@ static Future<List<Heart>> getHeart() async{
     }
   } //getHeart
 
-  static Future<List<Steps>> getStepWeek(DateTime start, DateTime end) async{
+  static Future<List<Steps>> getStepWeek(DateTime start, DateTime end, String patient) async{
     final sp = await SharedPreferences.getInstance();
     final access = sp.getString('access'); //request access token, will be null if not present
     if(access == null){
@@ -103,8 +147,6 @@ static Future<List<Heart>> getHeart() async{
         var access = sp.getString('access');
       }
 
-      
-      final patient = 'Jpefaq6m58';
       final start_date = "${start.year.toString()}-${start.month.toString().padLeft(2,'0')}-${start.day.toString().padLeft(2,'0')}";
       final end_date = "${end.year.toString()}-${end.month.toString().padLeft(2,'0')}-${end.day.toString().padLeft(2,'0')}";
       final url = Impact.baseUrl + Impact.stepEndpoint + 'patients/$patient/' + 'daterange/start_date/$start_date/' + 'end_date/$end_date/';
@@ -133,7 +175,7 @@ static Future<List<Heart>> getHeart() async{
     }
   } //getStepWeek
 
-  static Future<List<Heart>> getHeartWeek(DateTime start, DateTime end) async{
+  static Future<List<Heart>> getHeartWeek(DateTime start, DateTime end, String patient) async{
     final sp = await SharedPreferences.getInstance();
     final access = sp.getString('access'); //request access token, will be null if not present
     if(access == null){
@@ -145,8 +187,6 @@ static Future<List<Heart>> getHeart() async{
         var access = sp.getString('access');
       }
 
-      
-      final patient = 'Jpefaq6m58';
       final start_date = "${start.year.toString()}-${start.month.toString().padLeft(2,'0')}-${start.day.toString().padLeft(2,'0')}";
       final end_date = "${end.year.toString()}-${end.month.toString().padLeft(2,'0')}-${end.day.toString().padLeft(2,'0')}";
       final url = Impact.baseUrl + Impact.heartEndpoint + 'patients/$patient/' + 'daterange/start_date/$start_date/' + 'end_date/$end_date/';
