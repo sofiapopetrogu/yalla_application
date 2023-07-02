@@ -15,9 +15,11 @@ import '../database/patients/patients.dart';
 class Data_Access {
 
   static Future<List<Patients>> getPatients() async{
+    await Authentication.getAndStoreTokens();
     final sp = await SharedPreferences.getInstance();
     final access = sp.getString('access'); //request access token, will be null if not present
     if(access == null){
+      print('access is null');
       return List.empty();
     }
     else{

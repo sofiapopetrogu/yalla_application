@@ -1,4 +1,3 @@
-import 'package:fl_animated_linechart/chart/area_line_chart.dart';
 import 'package:fl_animated_linechart/common/pair.dart';
 import 'package:flutter/material.dart';
 import 'package:project_app/database/steps/steps_daily.dart';
@@ -28,13 +27,20 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  _HomePageState() : super() {
-    Data_Access.getPatients().then((value) {
+   void getPatients(){
+     Data_Access.getPatients().then((value) {
       setState(() {
         patients = value;
         currentpatient = patients[0].username;
       });
+    }).catchError((error) { 
+      print('error thrown');
+      print(error);
+      getPatients(); 
     });
+  }
+  _HomePageState() : super() {
+    getPatients();
   }
   Map<DateTime, double> stepsList = Map();
   Map<DateTime, double> heartList = Map();
@@ -430,10 +436,9 @@ class _HomePageState extends State<HomePage> {
           padding: const EdgeInsets.all(8.0),
           child: steps.isEmpty
               ? Center(
-                  child: Text(
-                    'No data',
-                    style: Theme.of(context).textTheme.headline6,
-                  ),
+                  child: 
+                  Image.asset('assets/images/walking.png',
+                      width: 125, height: 125)
                 )
               : _buildPlotWithDataSteps(context, steps),
         ),
@@ -530,10 +535,9 @@ class _HomePageState extends State<HomePage> {
           padding: const EdgeInsets.all(8.0),
           child: hearts.isEmpty
               ? Center(
-                  child: Text(
-                    'No data',
-                    style: Theme.of(context).textTheme.headline6,
-                  ),
+                  child: 
+                  Image.asset('assets/images/heart.png',
+                      width: 125, height: 125)
                 )
               : _buildPlotWithDataHeart(context, hearts),
         ),

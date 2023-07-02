@@ -38,4 +38,6 @@ flutter:
       - assets/images/fitbit.png
       - assets/images/yalla.png
       - assets/images/cat.png
+      - assets/images/walking.png
+      - assets/images/heart.png
       
