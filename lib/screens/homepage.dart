@@ -155,19 +155,27 @@ class _HomePageState extends State<HomePage> {
                   child: Column(children: [
                     const Padding(
                         padding:
-                            const EdgeInsets.only(top: 30.0, left: 30.0),
+                            const EdgeInsets.only(top: 20.0, left: 20.0),
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            'Timeframe',
+                            'Choose your timeframe:',
                             style: TextStyle(
-                                fontSize: 20.0,
-                                fontWeight: FontWeight.bold),
+                                fontSize: 15.0,
+                                fontStyle: FontStyle.italic,
+                                ),
                             textAlign: TextAlign.left,
                           ),
                         )),
-                    ListTile(
-                      title: const Text('Week'),
+                    Container(
+                      padding: EdgeInsets.only(top: 5.0, bottom: 5.0), //TODO: fix padding between listtiles
+                      child: Column(
+                        children: [
+                        ListTile(
+                          title: const Text('Week',
+                          style: TextStyle(
+                              fontSize: 14.0,
+                              )),
                       leading: Radio<String>(
                         value: 'Week',
                         groupValue: timewindow,
@@ -192,7 +200,10 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     ListTile(
-                      title: const Text('Day'),
+                      title: const Text('Day',
+                          style: TextStyle(
+                              fontSize: 14.0,
+                              )),
                       leading: Radio<String>(
                         value: 'Day',
                         groupValue: timewindow,
@@ -216,8 +227,11 @@ class _HomePageState extends State<HomePage> {
                         },
                       ),
                     ),
-                    ListTile(
-                      title: const Text('Hour'),
+                    ListTile(   
+                      title: const Text('Hour',
+                          style: TextStyle(
+                              fontSize: 14.0,
+                              )),
                       leading: Radio<String>(
                         value: 'Hour',
                         groupValue: timewindow,
@@ -242,6 +256,11 @@ class _HomePageState extends State<HomePage> {
                         },
                       ),
                     ),
+                        ],
+
+                      ),
+                    ),
+                    
                   ]),
                 ),
                 Expanded(
@@ -249,19 +268,27 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     const Padding(
                         padding:
-                            const EdgeInsets.only(top: 30.0, left: 30.0),
+                            const EdgeInsets.only(top: 20.0, left: 20.0),
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            'Grouping',
+                            'Choose your grouping:',
                             style: TextStyle(
-                                fontSize: 20.0,
-                                fontWeight: FontWeight.bold),
+                                fontSize: 15.0,
+                                fontStyle: FontStyle.italic,
+                                ),
                             textAlign: TextAlign.left,
                           ),
                         )),
+                    Container(
+                      padding: EdgeInsets.only(top: 5.0, bottom: 5.0), //TODO: fix padding between listtiles
+                      child: Column(
+                        children: [
                     ListTile(
-                      title: const Text('Day'),
+                      title: const Text('Day',
+                          style: TextStyle(
+                              fontSize: 14.0,
+                              )),
                       leading: Radio<String>(
                         value: 'Day',
                         groupValue: groupby,
@@ -287,7 +314,10 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     ListTile(
-                      title: const Text('Hour'),
+                      title: const Text('Hour',
+                          style: TextStyle(
+                              fontSize: 14.0,
+                              )),
                       leading: Radio<String>(
                         value: 'Hour',
                         groupValue: groupby,
@@ -313,7 +343,10 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     ListTile(
-                      title: const Text('Minute'),
+                      title: const Text('Minute',
+                          style: TextStyle(
+                              fontSize: 14.0,
+                              )),
                       leading: Radio<String>(
                         value: 'Minute',
                         groupValue: groupby,
@@ -338,6 +371,7 @@ class _HomePageState extends State<HomePage> {
                         },
                       ),
                     ),
+                        ],),)
                   ],
                 ))
               ],
@@ -427,6 +461,14 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+//TODO: Add a marker line for steps and heartrate benchmarks
+
+// Step Reference: 50
+// Heart Rate Reference: 80-100
+//Map<DateTime, double> marker1 = {data[DateTime.parse('2012-02-27 12:33:00')] = 208.0};
+
+
+
   //Function to built plot for steps
   Container _buildPlotSteps(BuildContext context, Map<DateTime, double> steps) {
     return Container(
@@ -471,7 +513,8 @@ class _HomePageState extends State<HomePage> {
             textStyle: TextStyle(color: Colors.black),
             chart,
             gridColor: Colors.black,
-            toolTipColor: Colors.black,
+            toolTipColor: Colors.white,
+
             //chartValueStyle: TextStyle(color: Colors.black),
           )))
     ]);
@@ -569,7 +612,7 @@ class _HomePageState extends State<HomePage> {
             textStyle: TextStyle(color: Colors.black),
             chart,
             gridColor: Colors.black,
-            toolTipColor: Colors.black,
+            toolTipColor: Colors.white,
           )))
     ]);
   } //buildPlotWithDataSteps
