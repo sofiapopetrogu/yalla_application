@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:fl_animated_linechart/common/pair.dart';
 import 'package:flutter/material.dart';
 import 'package:project_app/database/steps/steps_daily.dart';
@@ -27,18 +29,19 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-   void getPatients(){
-     Data_Access.getPatients().then((value) {
+  void getPatients() {
+    Data_Access.getPatients().then((value) {
       setState(() {
         patients = value;
         currentpatient = patients[0].username;
       });
-    }).catchError((error) { 
+    }).catchError((error) {
       print('error thrown');
       print(error);
-      getPatients(); 
+      getPatients();
     });
   }
+
   _HomePageState() : super() {
     getPatients();
   }
@@ -64,7 +67,7 @@ class _HomePageState extends State<HomePage> {
   String groupby = "Day";
   String currentpatient = "";
   List<Patients> patients = [];
-
+  bool download = false;
 
   @override
   Widget build(BuildContext context) {
@@ -73,312 +76,376 @@ class _HomePageState extends State<HomePage> {
     Container stepPlot = _buildPlotSteps(context, stepsList);
     Container heartPlot = _buildPlotHeart(context, heartList);
 
-    
     return Scaffold(
       appBar: AppBar(
         title: Text(HomePage.routename),
         backgroundColor: Colors.teal, // Set the background color to teal
       ),
       // await inserting data and then call other DAOs in the body
-      floatingActionButton: patients.isEmpty ? null:FloatingActionButton(
-        onPressed: () async {
-          //clear table before inserting steps
-          await Provider.of<DatabaseRepository>(context, listen: false)
-              .deleteAllSteps();
-          await Provider.of<DatabaseRepository>(context, listen: false)
-              .deleteAllHeart();
-          await Authentication.getAndStoreTokens();
-          final steps = await Data_Access.getStepWeek(
-              DateTime.now().subtract(Duration(days: 8)),
-              DateTime.now().subtract(Duration(days: 1)), currentpatient);
-          final hearts = await Data_Access.getHeartWeek(
-              DateTime.now().subtract(Duration(days: 8)),
-              DateTime.now().subtract(Duration(days: 1)), currentpatient);
-          await Provider.of<DatabaseRepository>(context, listen: false)
-              .database
-              .stepDao
-              .insertMultSteps(steps
-                  .map((step) => Steps_Daily(
-                      steps: step.value,
-                      dateTime: step.time,
-                      patient: step.patient))
-                  .toList());
-          await Provider.of<DatabaseRepository>(context, listen: false)
-              .database
-              .heartDao
-              .insertMultHeart(hearts
-                  .map((heart) => Heart_Daily(
-                      heart: heart.value,
-                      dateTime: heart.time,
-                      patient: heart.patient))
-                  .toList());
+      floatingActionButton: patients.isEmpty
+          ? null
+          : FloatingActionButton(
+              onPressed: () async {
 
-          final datastep = await getMapStep(startdate, enddate, mycondition);
-          final dataheart = await getMapHeart(startdate, enddate, mycondition);
+                //clear table before inserting steps
+                await Provider.of<DatabaseRepository>(context, listen: false)
+                    .deleteAllSteps();
+                await Provider.of<DatabaseRepository>(context, listen: false)
+                    .deleteAllHeart();
+                await Authentication.getAndStoreTokens();
+                final steps = await Data_Access.getStepWeek(
+                    DateTime.now().subtract(Duration(days: 8)),
+                    DateTime.now().subtract(Duration(days: 1)),
+                    currentpatient);
+                final hearts = await Data_Access.getHeartWeek(
+                    DateTime.now().subtract(Duration(days: 8)),
+                    DateTime.now().subtract(Duration(days: 1)),
+                    currentpatient);
+                await Provider.of<DatabaseRepository>(context, listen: false)
+                    .database
+                    .stepDao
+                    .insertMultSteps(steps
+                        .map((step) => Steps_Daily(
+                            steps: step.value,
+                            dateTime: step.time,
+                            patient: step.patient))
+                        .toList());
+                await Provider.of<DatabaseRepository>(context, listen: false)
+                    .database
+                    .heartDao
+                    .insertMultHeart(hearts
+                        .map((heart) => Heart_Daily(
+                            heart: heart.value,
+                            dateTime: heart.time,
+                            patient: heart.patient))
+                        .toList());
 
-          setState(() {
-            stepsList = datastep;
-            heartList = dataheart;
-          });
-        },
-        child: Icon(Icons.update),
-        backgroundColor: Colors.teal,
-      ),
+                final datastep =
+                    await getMapStep(startdate, enddate, mycondition);
+                final dataheart =
+                    await getMapHeart(startdate, enddate, mycondition);
+
+                setState(() {
+                  download = true;
+                  stepsList = datastep;
+                  heartList = dataheart;
+                });
+              },
+              child: Icon(Icons.update),
+              backgroundColor: Colors.teal,
+            ),
       body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            DropdownButton<String>(
-                  disabledHint: const Text("Loading"),
-                  value: currentpatient,
-                  icon: const Icon(Icons.arrow_downward),
-                  elevation: 16,
-                  style: const TextStyle(color: Colors.deepPurple),
-                  underline: Container(
-                    height: 2,
-                    color: Colors.deepPurpleAccent,
-                  ),
-                  onChanged: (String? value) {
-                    // This is called when the user selects an item.
-                    setState(() {
-                      currentpatient = value!;
-                    });
-                  },
-                  items: patients.isEmpty ? null: patients.map<DropdownMenuItem<String>>((value) => DropdownMenuItem<String>(
-                      value: value.username,
-                      child: Text(value.displayname),
-                    )).toList(), 
-                ),
-          ] + (patients.isEmpty ? []:[  Row(
-              children: [
-                Expanded(
-                  child: Column(children: [
-                    const Padding(
-                        padding:
-                            const EdgeInsets.only(top: 20.0, left: 20.0),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Choose your timeframe:',
-                            style: TextStyle(
-                                fontSize: 15.0,
-                                fontStyle: FontStyle.italic,
-                                ),
-                            textAlign: TextAlign.left,
-                          ),
-                        )),
-                    Container(
-                      padding: EdgeInsets.only(top: 5.0, bottom: 5.0), //TODO: fix padding between listtiles
-                      child: Column(
-                        children: [
-                        ListTile(
-                          title: const Text('Week',
-                          style: TextStyle(
-                              fontSize: 14.0,
-                              )),
-                      leading: Radio<String>(
-                        value: 'Week',
-                        groupValue: timewindow,
-                        //if I'm selected, groupvalue will match value showing the filled button
-                        onChanged: (String? value) async {
-                          final datastep = await getMapStep(
-                              enddate.subtract(Duration(days: 7)),
-                              enddate,
-                              mycondition);
-                          final dataheart = await getMapHeart(
-                              enddate.subtract(Duration(days: 7)),
-                              enddate,
-                              mycondition);
-                          setState(() {
-                            print("selected week");
-                            timewindow = 'Week';
-                            startdate = enddate.subtract(Duration(days: 7));
-                            stepsList = datastep;
-                            heartList = dataheart;
-                          });
-                        },
-                      ),
-                    ),
-                    ListTile(
-                      title: const Text('Day',
-                          style: TextStyle(
-                              fontSize: 14.0,
-                              )),
-                      leading: Radio<String>(
-                        value: 'Day',
-                        groupValue: timewindow,
-                        //if I'm selected, groupvalue will match value showing the filled button
-                        onChanged: (String? value) async {
-                          final datastep = await getMapStep(
-                              enddate.subtract(Duration(days: 1)),
-                              enddate,
-                              mycondition);
-                          final dataheart = await getMapHeart(
-                              enddate.subtract(Duration(days: 1)),
-                              enddate,
-                              mycondition);
-                          setState(() {
-                            print("selected day");
-                            timewindow = 'Day';
-                            startdate = enddate.subtract(Duration(days: 1));
-                            stepsList = datastep;
-                            heartList = dataheart;
-                          });
-                        },
-                      ),
-                    ),
-                    ListTile(   
-                      title: const Text('Hour',
-                          style: TextStyle(
-                              fontSize: 14.0,
-                              )),
-                      leading: Radio<String>(
-                        value: 'Hour',
-                        groupValue: timewindow,
-                        //if I'm selected, groupvalue will match value showing the filled button
-                        onChanged: (String? value) async {
-                          final datastep = await getMapStep(
-                              enddate.subtract(Duration(hours: 1)),
-                              enddate,
-                              mycondition);
-                          final dataheart = await getMapHeart(
-                              enddate.subtract(Duration(hours: 1)),
-                              enddate,
-                              mycondition);
-                          setState(() {
-                            print("selected hour");
-                            timewindow = 'Hour';
-                            startdate =
-                                enddate.subtract(Duration(hours: 1));
-                            stepsList = datastep;
-                            heartList = dataheart;
-                          });
-                        },
-                      ),
-                    ),
-                        ],
-
-                      ),
-                    ),
-                    
-                  ]),
-                ),
-                Expanded(
+                Padding(
+                    padding: EdgeInsets.only(left: 20.0, right: 20.0, top: 8.0),
                     child: Column(
-                  children: [
-                    const Padding(
-                        padding:
-                            const EdgeInsets.only(top: 20.0, left: 20.0),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Container(
+                          width: MediaQuery.of(context).size.width,
                           child: Text(
-                            'Choose your grouping:',
-                            style: TextStyle(
-                                fontSize: 15.0,
-                                fontStyle: FontStyle.italic,
-                                ),
-                            textAlign: TextAlign.left,
-                          ),
-                        )),
-                    Container(
-                      padding: EdgeInsets.only(top: 5.0, bottom: 5.0), //TODO: fix padding between listtiles
-                      child: Column(
+                                      'Choose your patient:',
+                                      style: TextStyle(
+                                        fontSize: 15.0,
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                      textAlign: TextAlign.left,
+                                    ),
+                        ),
+                        Container(
+                            width: MediaQuery.of(context).size.width,
+                            child: DropdownButton<String>(
+                              disabledHint: const Text("Loading"),
+                              value: currentpatient,
+                              icon: const Icon(Icons.arrow_downward),
+                              elevation: 16,
+                              underline: Container(
+                                height: 2,
+                                color: Colors.teal,
+                              ),
+                              onChanged: (String? value) {
+                                // This is called when the user selects an item.
+                                setState(() {
+                                  currentpatient = value!;
+                                });
+                              },
+                              items: patients.isEmpty
+                                  ? null
+                                  : patients
+                                      .map<DropdownMenuItem<String>>(
+                                          (value) => DropdownMenuItem<String>(
+                                                value: value.username,
+                                                child: Text(value.displayname),
+                                              ))
+                                      .toList(),
+                            )),
+                      ],
+                    )),
+              ] +
+              (patients.isEmpty
+                  ? []
+                  : [
+                      Row(
                         children: [
-                    ListTile(
-                      title: const Text('Day',
-                          style: TextStyle(
-                              fontSize: 14.0,
-                              )),
-                      leading: Radio<String>(
-                        value: 'Day',
-                        groupValue: groupby,
-                        //if I'm selected, groupvalue will match value showing the filled button
-                        onChanged: (String? value) async {
-                          final datastep = await getMapStep(
-                              startdate,
-                              enddate,
-                              "DATE(dateTime / 1000, 'unixepoch')");
-                          final dataheart = await getMapHeart(
-                              startdate,
-                              enddate,
-                              "DATE(dateTime / 1000, 'unixepoch')");
-                          setState(() {
-                            print("selected day");
-                            groupby = 'Day';
-                            mycondition =
-                                "DATE(dateTime / 1000, 'unixepoch')";
-                            stepsList = datastep;
-                            heartList = dataheart;
-                          });
-                        },
+                          Expanded(
+                            child: Column(children: [
+                              const Padding(
+                                  padding:
+                                      EdgeInsets.only(top: 20.0, left: 20.0),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      'Choose your timeframe:',
+                                      style: TextStyle(
+                                        fontSize: 15.0,
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                      textAlign: TextAlign.left,
+                                    ),
+                                  )),
+                              Container(
+                                padding: EdgeInsets.only(top: 5.0, bottom: 5.0),
+                                child: Column(
+                                  children: [
+                                    ListTile(
+                                      dense: true,
+                                      contentPadding:
+                                          EdgeInsets.only(left: 10.0),
+                                      title: const Text('Week',
+                                          style: TextStyle(
+                                            fontSize: 14.0,
+                                          )),
+                                      leading: Radio<String>(
+                                        value: 'Week',
+                                        groupValue: timewindow,
+                                        //if I'm selected, groupvalue will match value showing the filled button
+                                        onChanged: (String? value) async {
+                                          final datastep = await getMapStep(
+                                              enddate
+                                                  .subtract(Duration(days: 7)),
+                                              enddate,
+                                              mycondition);
+                                          final dataheart = await getMapHeart(
+                                              enddate
+                                                  .subtract(Duration(days: 7)),
+                                              enddate,
+                                              mycondition);
+                                          setState(() {
+                                            print("selected week");
+                                            timewindow = 'Week';
+                                            startdate = enddate
+                                                .subtract(Duration(days: 7));
+                                            stepsList = datastep;
+                                            heartList = dataheart;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    ListTile(
+                                      dense: true,
+                                      contentPadding:
+                                          EdgeInsets.only(left: 10.0),
+                                      title: const Text('Day',
+                                          style: TextStyle(
+                                            fontSize: 14.0,
+                                          )),
+                                      leading: Radio<String>(
+                                        value: 'Day',
+                                        groupValue: timewindow,
+                                        //if I'm selected, groupvalue will match value showing the filled button
+                                        onChanged: (String? value) async {
+                                          final datastep = await getMapStep(
+                                              enddate
+                                                  .subtract(Duration(days: 1)),
+                                              enddate,
+                                              mycondition);
+                                          final dataheart = await getMapHeart(
+                                              enddate
+                                                  .subtract(Duration(days: 1)),
+                                              enddate,
+                                              mycondition);
+                                          setState(() {
+                                            print("selected day");
+                                            timewindow = 'Day';
+                                            startdate = enddate
+                                                .subtract(Duration(days: 1));
+                                            stepsList = datastep;
+                                            heartList = dataheart;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    ListTile(
+                                      dense: true,
+                                      contentPadding:
+                                          EdgeInsets.only(left: 10.0),
+                                      title: const Text('Hour',
+                                          style: TextStyle(
+                                            fontSize: 14.0,
+                                          )),
+                                      leading: Radio<String>(
+                                        value: 'Hour',
+                                        groupValue: timewindow,
+                                        //if I'm selected, groupvalue will match value showing the filled button
+                                        onChanged: (String? value) async {
+                                          final datastep = await getMapStep(
+                                              enddate
+                                                  .subtract(Duration(hours: 1)),
+                                              enddate,
+                                              mycondition);
+                                          final dataheart = await getMapHeart(
+                                              enddate
+                                                  .subtract(Duration(hours: 1)),
+                                              enddate,
+                                              mycondition);
+                                          setState(() {
+                                            print("selected hour");
+                                            timewindow = 'Hour';
+                                            startdate = enddate
+                                                .subtract(Duration(hours: 1));
+                                            stepsList = datastep;
+                                            heartList = dataheart;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ]),
+                          ),
+                          Expanded(
+                              child: Column(
+                            children: [
+                              const Padding(
+                                  padding:
+                                      EdgeInsets.only(top: 20.0, left: 20.0),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      'Choose your grouping:',
+                                      style: TextStyle(
+                                        fontSize: 15.0,
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                      textAlign: TextAlign.left,
+                                    ),
+                                  )),
+                              Container(
+                                padding: EdgeInsets.only(
+                                    top: 5.0,
+                                    bottom:
+                                        5.0), 
+                                child: Column(
+                                  children: [
+                                    ListTile(
+                                      dense: true,
+                                      contentPadding:
+                                          EdgeInsets.only(left: 10.0),
+                                      title: const Text('Day',
+                                          style: TextStyle(
+                                            fontSize: 14.0,
+                                          )),
+                                      leading: Radio<String>(
+                                        value: 'Day',
+                                        groupValue: groupby,
+                                        //if I'm selected, groupvalue will match value showing the filled button
+                                        onChanged: timewindow == 'Hour' || timewindow == 'Day' ? null : (String? value) async {
+                                          final datastep = await getMapStep(
+                                              startdate,
+                                              enddate,
+                                              "DATE(dateTime / 1000, 'unixepoch')");
+                                          final dataheart = await getMapHeart(
+                                              startdate,
+                                              enddate,
+                                              "DATE(dateTime / 1000, 'unixepoch')");
+                                          setState(() {
+                                            print("selected day");
+                                            groupby = 'Day';
+                                            mycondition =
+                                                "DATE(dateTime / 1000, 'unixepoch')";
+                                            stepsList = datastep;
+                                            heartList = dataheart;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    ListTile(
+                                      dense: true,
+                                      contentPadding:
+                                          EdgeInsets.only(left: 10.0),
+                                      title: const Text('Hour',
+                                          style: TextStyle(
+                                            fontSize: 14.0,
+                                          )),
+                                      leading: Radio<String>(
+                                        value: 'Hour',
+                                        groupValue: groupby,
+                                        //if I'm selected, groupvalue will match value showing the filled button
+                                        onChanged: timewindow == 'Hour' ? null : (String? value) async {
+                                          final datastep = await getMapStep(
+                                              startdate,
+                                              enddate,
+                                              "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':00:00'");
+                                          final dataheart = await getMapHeart(
+                                              startdate,
+                                              enddate,
+                                              "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':00:00'");
+                                          setState(() {
+                                            print("selected hour");
+                                            groupby = 'Hour';
+                                            mycondition =
+                                                "DATE(dateTime / 1000, 'unixepoch')";
+                                            stepsList = datastep;
+                                            heartList = dataheart;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    ListTile(
+                                      dense: true,
+                                      contentPadding:
+                                          EdgeInsets.only(left: 10.0),
+                                      title: const Text('Minute',
+                                          style: TextStyle(
+                                            fontSize: 14.0,
+                                          )),
+                                      leading: Radio<String>(
+                                        value: 'Minute',
+                                        groupValue: groupby,
+                                        //if I'm selected, groupvalue will match value showing the filled button
+                                        onChanged: (String? value) async {
+                                          final datastep = await getMapStep(
+                                              startdate,
+                                              enddate,
+                                              "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':' || strftime('%M',  dateTime / 1000, 'unixepoch') || ':00'");
+                                          final dataheart = await getMapHeart(
+                                              startdate,
+                                              enddate,
+                                              "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':' || strftime('%M',  dateTime / 1000, 'unixepoch') || ':00'");
+                                          setState(() {
+                                            print("selected minute");
+                                            groupby = 'Minute';
+                                            mycondition =
+                                                "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':' || strftime('%M',  dateTime / 1000, 'unixepoch') || ':00'";
+                                            stepsList = datastep;
+                                            heartList = dataheart;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            ],
+                          ))
+                        ],
                       ),
-                    ),
-                    ListTile(
-                      title: const Text('Hour',
-                          style: TextStyle(
-                              fontSize: 14.0,
-                              )),
-                      leading: Radio<String>(
-                        value: 'Hour',
-                        groupValue: groupby,
-                        //if I'm selected, groupvalue will match value showing the filled button
-                        onChanged: (String? value) async {
-                          final datastep = await getMapStep(
-                              startdate,
-                              enddate,
-                              "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':00:00'");
-                          final dataheart = await getMapHeart(
-                              startdate,
-                              enddate,
-                              "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':00:00'");
-                          setState(() {
-                            print("selected hour");
-                            groupby = 'Hour';
-                            mycondition =
-                                "DATE(dateTime / 1000, 'unixepoch')";
-                            stepsList = datastep;
-                            heartList = dataheart;
-                          });
-                        },
-                      ),
-                    ),
-                    ListTile(
-                      title: const Text('Minute',
-                          style: TextStyle(
-                              fontSize: 14.0,
-                              )),
-                      leading: Radio<String>(
-                        value: 'Minute',
-                        groupValue: groupby,
-                        //if I'm selected, groupvalue will match value showing the filled button
-                        onChanged: (String? value) async {
-                          final datastep = await getMapStep(
-                              startdate,
-                              enddate,
-                              "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':' || strftime('%M',  dateTime / 1000, 'unixepoch') || ':00'");
-                          final dataheart = await getMapHeart(
-                              startdate,
-                              enddate,
-                              "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':' || strftime('%M',  dateTime / 1000, 'unixepoch') || ':00'");
-                          setState(() {
-                            print("selected minute");
-                            groupby = 'Minute';
-                            mycondition =
-                                "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':' || strftime('%M',  dateTime / 1000, 'unixepoch') || ':00'";
-                            stepsList = datastep;
-                            heartList = dataheart;
-                          });
-                        },
-                      ),
-                    ),
-                        ],),)
-                  ],
-                ))
-              ],
-            ),
-            stepPlot, 
-            heartPlot
-          ]),
+                      stepPlot,
+                      heartPlot
+                    ]),
         ),
       ),
       drawer: Drawer(
@@ -400,8 +467,12 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
         items: const [
-          //TODO: Add icon for Dashboard
+          BottomNavigationBarItem(
+            icon: Icon(Icons.ssid_chart),
+            label: 'Dashboard',
+          ),
           BottomNavigationBarItem(
             icon: Icon(MdiIcons.accountCircle),
             label: 'Profile',
@@ -416,11 +487,11 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
         onTap: (int index) {
-          if (index == 0) {
+          if (index == 1) {
             _toProfile(context);
-          } else if (index == 1) {
-            _toCommunity(context);
           } else if (index == 2) {
+            _toCommunity(context);
+          } else if (index == 3) {
             _toSettings(context);
           }
         },
@@ -461,13 +532,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-//TODO: Add a marker line for steps and heartrate benchmarks
-
-// Step Reference: 50
-// Heart Rate Reference: 80-100
-//Map<DateTime, double> marker1 = {data[DateTime.parse('2012-02-27 12:33:00')] = 208.0};
-
-
+//TODO: Disable groupings that don't have data: only minute for hour timeframe
 
   //Function to built plot for steps
   Container _buildPlotSteps(BuildContext context, Map<DateTime, double> steps) {
@@ -476,12 +541,10 @@ class _HomePageState extends State<HomePage> {
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: steps.isEmpty
+          child: (steps.isEmpty || !download)
               ? Center(
-                  child: 
-                  Image.asset('assets/images/walking.png',
-                      width: 125, height: 125)
-                )
+                  child: Image.asset('assets/images/walking.png',
+                      width: 125, height: 125))
               : _buildPlotWithDataSteps(context, steps),
         ),
       ),
@@ -491,12 +554,14 @@ class _HomePageState extends State<HomePage> {
   //Function to build plot with data
   Widget _buildPlotWithDataSteps(
       BuildContext context, Map<DateTime, double> steps) {
-    LineChart chart;
-
-    chart = LineChart.fromDateTimeMaps(
-      [steps],
-      [Colors.blue],
-      ['Steps'],
+    Map<DateTime, double> stepreference = {
+      steps.keys.reduce((a,b) => a.isBefore(b) ? a : b): 50, //min start date
+      steps.keys.reduce((a,b) => a.isAfter(b) ? a : b): 50 //max end date
+    };
+    LineChart chart = LineChart.fromDateTimeMaps(
+      [steps, stepreference],
+      [Colors.blue, Colors.red],
+      ['Steps', 'Steps'],
       yAxisName: 'Steps',
       //showLegends: true,
       //legendPosition: LegendPosition.bottom,
@@ -507,16 +572,31 @@ class _HomePageState extends State<HomePage> {
     //AreaLineChart()
     return Column(children: [
       Expanded(
-              child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: AnimatedLineChart(
-            textStyle: TextStyle(color: Colors.black),
-            chart,
-            gridColor: Colors.black,
-            toolTipColor: Colors.white,
+          child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: AnimatedLineChart(
+                legends: const [Legend(
+                            title: 'Patient Steps',
+                            color: Colors.blue,
+                            showLeadingLine: true,
+                            style: TextStyle(
+                              color: Colors.black,
+                            ),
+                          ),Legend(
+                            title: 'Step Reference',
+                            color: Colors.red,
+                            showLeadingLine: true,
+                            style: TextStyle(
+                              color: Colors.black,
+                            ),
+                          ),],
+                textStyle: TextStyle(color: Colors.black),
+                chart,
+                gridColor: Colors.black,
+                toolTipColor: Colors.white,
 
-            //chartValueStyle: TextStyle(color: Colors.black),
-          )))
+                //chartValueStyle: TextStyle(color: Colors.black),
+              )))
     ]);
   } //buildPlotWithDataSteps
 
@@ -576,12 +656,10 @@ class _HomePageState extends State<HomePage> {
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: hearts.isEmpty
+          child: (hearts.isEmpty || !download)
               ? Center(
-                  child: 
-                  Image.asset('assets/images/heart.png',
-                      width: 125, height: 125)
-                )
+                  child: Image.asset('assets/images/heart.png',
+                      width: 125, height: 125))
               : _buildPlotWithDataHeart(context, hearts),
         ),
       ),
@@ -591,12 +669,18 @@ class _HomePageState extends State<HomePage> {
   //Function to build plot with data
   Widget _buildPlotWithDataHeart(
       BuildContext context, Map<DateTime, double> hearts) {
-    LineChart chart;
-
-    chart = LineChart.fromDateTimeMaps(
-      [hearts],
-      [Colors.blue],
-      ['Heart Rate'],
+    Map<DateTime, double> heartlower = {
+      hearts.keys.reduce((a,b) => a.isBefore(b) ? a : b): 60, //min start date
+      hearts.keys.reduce((a,b) => a.isAfter(b) ? a : b): 60 //max end date
+    };
+    Map<DateTime, double> heartupper = {
+      hearts.keys.reduce((a,b) => a.isBefore(b) ? a : b): 100, //min start date
+      hearts.keys.reduce((a,b) => a.isAfter(b) ? a : b): 100 //max end date
+    };
+    LineChart chart = LineChart.fromDateTimeMaps(
+      [hearts, heartlower, heartupper],
+      [Colors.blue, Colors.red, Colors.black],
+      ['Heart Rate', 'Heart Rate', 'Heart Rate'],
       yAxisName: 'Heart Rate',
       //showLegends: true,
       //legendPosition: LegendPosition.bottom,
@@ -605,15 +689,40 @@ class _HomePageState extends State<HomePage> {
       //dateTimeFactory: const LocalDateTimeFactory(),
     );
     return Column(children: [
-      
-          Expanded(
-              child: Padding(
-          padding: const EdgeInsets.all(10.0), child: AnimatedLineChart(
-            textStyle: TextStyle(color: Colors.black),
-            chart,
-            gridColor: Colors.black,
-            toolTipColor: Colors.white,
-          )))
+      Expanded(
+          child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: AnimatedLineChart(
+                legends: const [Legend(
+                            title: 'Patient HR',
+                            color: Colors.blue,
+                            showLeadingLine: true,
+                            style: TextStyle(
+                              color: Colors.black,
+                            ),
+                          ),
+                          Legend(
+                            title: 'HR Lower',
+                            color: Colors.red,
+                            showLeadingLine: true,
+                            style: TextStyle(
+                              color: Colors.black,
+                            ),
+                          ),
+                          Legend(
+                            title: 'HR Upper',
+                            color: Colors.black,
+                            showLeadingLine: true,
+                            style: TextStyle(
+                              color: Colors.black,
+                            ),
+                          ),],
+                textStyle: TextStyle(color: Colors.black),
+                chart,
+                gridColor: Colors.black,
+                toolTipColor: Colors.white,
+              )))
     ]);
   } //buildPlotWithDataSteps
+
 } //HomePage
