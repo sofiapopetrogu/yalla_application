@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:fl_animated_linechart/common/pair.dart';
 import 'package:flutter/material.dart';
 import 'package:project_app/database/steps/steps_daily.dart';
@@ -46,8 +44,10 @@ class _HomePageState extends State<HomePage> {
     getPatients();
   }
   Map<DateTime, double> stepsList = Map();
+  Map<DateTime, double> prevstepsList = Map();
   Map<DateTime, double> heartList = Map();
-  DateTime enddate =
+  Map<DateTime, double> prevheartList = Map();
+  final DateTime enddate =
       DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
           .subtract(Duration(seconds: 1));
   DateTime startdate =
@@ -73,8 +73,8 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     //initialize stepPlot
 
-    Container stepPlot = _buildPlotSteps(context, stepsList);
-    Container heartPlot = _buildPlotHeart(context, heartList);
+    Container stepPlot = _buildPlotSteps(context, stepsList, prevstepsList);
+    Container heartPlot = _buildPlotHeart(context, heartList, prevheartList);
 
     return Scaffold(
       appBar: AppBar(
@@ -93,42 +93,85 @@ class _HomePageState extends State<HomePage> {
                 await Provider.of<DatabaseRepository>(context, listen: false)
                     .deleteAllHeart();
                 await Authentication.getAndStoreTokens();
-                final steps = await Data_Access.getStepWeek(
-                    DateTime.now().subtract(Duration(days: 8)),
-                    DateTime.now().subtract(Duration(days: 1)),
-                    currentpatient);
-                final hearts = await Data_Access.getHeartWeek(
-                    DateTime.now().subtract(Duration(days: 8)),
-                    DateTime.now().subtract(Duration(days: 1)),
-                    currentpatient);
-                await Provider.of<DatabaseRepository>(context, listen: false)
-                    .database
-                    .stepDao
-                    .insertMultSteps(steps
-                        .map((step) => Steps_Daily(
-                            steps: step.value,
-                            dateTime: step.time,
-                            patient: step.patient))
-                        .toList());
-                await Provider.of<DatabaseRepository>(context, listen: false)
-                    .database
-                    .heartDao
-                    .insertMultHeart(hearts
-                        .map((heart) => Heart_Daily(
-                            heart: heart.value,
-                            dateTime: heart.time,
-                            patient: heart.patient))
-                        .toList());
 
-                final datastep =
-                    await getMapStep(startdate, enddate, mycondition);
-                final dataheart =
-                    await getMapHeart(startdate, enddate, mycondition);
+                await Future.wait([
+                  Data_Access.getStepWeek(
+                      enddate.subtract(Duration(days: 7)),
+                      enddate,
+                      currentpatient).then((steps) async {
+                        await Provider.of<DatabaseRepository>(context, listen: false)
+                          .database
+                          .stepDao
+                          .insertMultSteps(steps
+                              .map((step) => Steps_Daily(
+                                  steps: step.value,
+                                  dateTime: step.time,
+                                  patient: step.patient))
+                              .toList());
+                      }),
+                  Data_Access.getStepWeek(
+                      enddate.subtract(Duration(days: 15)),
+                      enddate.subtract(Duration(days: 8)),
+                      currentpatient).then((prev_steps) async {
+                        await Provider.of<DatabaseRepository>(context, listen: false)
+                          .database
+                          .stepDao
+                          .insertMultSteps(prev_steps
+                              .map((step) => Steps_Daily(
+                                  steps: step.value,
+                                  dateTime: step.time,
+                                  patient: step.patient))
+                              .toList());
+                      }),
+                  Data_Access.getHeartWeek(
+                      enddate.subtract(Duration(days: 7)),
+                      enddate,
+                      currentpatient).then((hearts) async {
+                        await Provider.of<DatabaseRepository>(context, listen: false)
+                          .database
+                          .heartDao
+                          .insertMultHeart(hearts
+                              .map((heart) => Heart_Daily(
+                                  heart: heart.value,
+                                  dateTime: heart.time,
+                                  patient: heart.patient))
+                              .toList());
+                      }),
+                  Data_Access.getHeartWeek(
+                      enddate.subtract(Duration(days: 15)),
+                      enddate.subtract(Duration(days: 8)),
+                      currentpatient).then((prev_hearts) async {
+                        await Provider.of<DatabaseRepository>(context, listen: false)
+                          .database
+                          .heartDao
+                          .insertMultHeart(prev_hearts
+                              .map((heart) => Heart_Daily(
+                                  heart: heart.value,
+                                  dateTime: heart.time,
+                                  patient: heart.patient))
+                              .toList());
+                      })
+                ]);
+                
+                late Map<DateTime, double> datastep;
+                late Map<DateTime, double> prev_datastep;
+                late Map<DateTime, double> dataheart;
+                late Map<DateTime, double> prev_dataheart;
+                
+                final result = await Future.wait([
+                  getMapStep(startdate, enddate, mycondition).then((value) => datastep = value),
+                  getMapStep(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), mycondition).then((value) => prev_datastep = value),
+                  getMapHeart(startdate, enddate, mycondition).then((value) => dataheart = value),
+                  getMapHeart(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), mycondition).then((value) => prev_dataheart = value) 
+                ]);
+
 
                 setState(() {
                   download = true;
                   stepsList = datastep;
                   heartList = dataheart;
+                  prevstepsList = prev_datastep;
+                  prevheartList = prev_dataheart;
                 });
               },
               child: Icon(Icons.update),
@@ -222,23 +265,27 @@ class _HomePageState extends State<HomePage> {
                                         groupValue: timewindow,
                                         //if I'm selected, groupvalue will match value showing the filled button
                                         onChanged: (String? value) async {
-                                          final datastep = await getMapStep(
-                                              enddate
-                                                  .subtract(Duration(days: 7)),
-                                              enddate,
-                                              mycondition);
-                                          final dataheart = await getMapHeart(
-                                              enddate
-                                                  .subtract(Duration(days: 7)),
-                                              enddate,
-                                              mycondition);
+                                          startdate = enddate
+                                              .subtract(Duration(days: 7));
+                                          late Map<DateTime, double> datastep;
+                                          late Map<DateTime, double> prev_datastep;
+                                          late Map<DateTime, double> dataheart;
+                                          late Map<DateTime, double> prev_dataheart;
+                                          
+                                          final result = await Future.wait([
+                                            getMapStep(startdate, enddate, mycondition).then((value) => datastep = value),
+                                            getMapStep(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), mycondition).then((value) => prev_datastep = value),
+                                            getMapHeart(startdate, enddate, mycondition).then((value) => dataheart = value),
+                                            getMapHeart(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), mycondition).then((value) => prev_dataheart = value) 
+                                          ]);
                                           setState(() {
-                                            print("selected week");
                                             timewindow = 'Week';
                                             startdate = enddate
                                                 .subtract(Duration(days: 7));
                                             stepsList = datastep;
                                             heartList = dataheart;
+                                            prevstepsList = prev_datastep;
+                                            prevheartList = prev_dataheart;
                                           });
                                         },
                                       ),
@@ -256,23 +303,33 @@ class _HomePageState extends State<HomePage> {
                                         groupValue: timewindow,
                                         //if I'm selected, groupvalue will match value showing the filled button
                                         onChanged: (String? value) async {
-                                          final datastep = await getMapStep(
-                                              enddate
-                                                  .subtract(Duration(days: 1)),
-                                              enddate,
-                                              mycondition);
-                                          final dataheart = await getMapHeart(
-                                              enddate
-                                                  .subtract(Duration(days: 1)),
-                                              enddate,
-                                              mycondition);
+                                          startdate = enddate
+                                              .subtract(Duration(days: 1));
+                                          late Map<DateTime, double> datastep;
+                                          late Map<DateTime, double> prev_datastep;
+                                          late Map<DateTime, double> dataheart;
+                                          late Map<DateTime, double> prev_dataheart;
+                                          
+                                          final c = groupby == 'Day' ? "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':00:00'" : mycondition;
+                                          
+                                          final result = await Future.wait([
+                                            getMapStep(startdate, enddate, c).then((value) => datastep = value),
+                                            getMapStep(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_datastep = value),
+                                            getMapHeart(startdate, enddate, c).then((value) => dataheart = value),
+                                            getMapHeart(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_dataheart = value) 
+                                          ]);
                                           setState(() {
-                                            print("selected day");
                                             timewindow = 'Day';
+                                            if (groupby == 'Day') {
+                                              groupby = 'Hour';
+                                              mycondition = "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':00:00'";
+                                            }
                                             startdate = enddate
                                                 .subtract(Duration(days: 1));
                                             stepsList = datastep;
                                             heartList = dataheart;
+                                            prevstepsList = prev_datastep;
+                                            prevheartList = prev_dataheart;
                                           });
                                         },
                                       ),
@@ -290,23 +347,31 @@ class _HomePageState extends State<HomePage> {
                                         groupValue: timewindow,
                                         //if I'm selected, groupvalue will match value showing the filled button
                                         onChanged: (String? value) async {
-                                          final datastep = await getMapStep(
-                                              enddate
-                                                  .subtract(Duration(hours: 1)),
-                                              enddate,
-                                              mycondition);
-                                          final dataheart = await getMapHeart(
-                                              enddate
-                                                  .subtract(Duration(hours: 1)),
-                                              enddate,
-                                              mycondition);
+                                          startdate = enddate
+                                              .subtract(Duration(hours: 1));
+                                          late Map<DateTime, double> datastep;
+                                          late Map<DateTime, double> prev_datastep;
+                                          late Map<DateTime, double> dataheart;
+                                          late Map<DateTime, double> prev_dataheart;
+
+                                          final c = "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':' || strftime('%M',  dateTime / 1000, 'unixepoch') || ':00'";
+
+                                          final result = await Future.wait([
+                                            getMapStep(startdate, enddate, c).then((value) => datastep = value),
+                                            getMapStep(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_datastep = value),
+                                            getMapHeart(startdate, enddate, c).then((value) => dataheart = value),
+                                            getMapHeart(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_dataheart = value) 
+                                          ]);
                                           setState(() {
-                                            print("selected hour");
                                             timewindow = 'Hour';
+                                            groupby = 'Minute';
                                             startdate = enddate
                                                 .subtract(Duration(hours: 1));
+                                            mycondition = c;
                                             stepsList = datastep;
                                             heartList = dataheart;
+                                            prevstepsList = prev_datastep;
+                                            prevheartList = prev_dataheart;
                                           });
                                         },
                                       ),
@@ -353,21 +418,25 @@ class _HomePageState extends State<HomePage> {
                                         groupValue: groupby,
                                         //if I'm selected, groupvalue will match value showing the filled button
                                         onChanged: timewindow == 'Hour' || timewindow == 'Day' ? null : (String? value) async {
-                                          final datastep = await getMapStep(
-                                              startdate,
-                                              enddate,
-                                              "DATE(dateTime / 1000, 'unixepoch')");
-                                          final dataheart = await getMapHeart(
-                                              startdate,
-                                              enddate,
-                                              "DATE(dateTime / 1000, 'unixepoch')");
+                                          final c = "DATE(dateTime / 1000, 'unixepoch')";
+                                          late Map<DateTime, double> datastep;
+                                          late Map<DateTime, double> prev_datastep;
+                                          late Map<DateTime, double> dataheart;
+                                          late Map<DateTime, double> prev_dataheart;
+                                          
+                                          final result = await Future.wait([
+                                            getMapStep(startdate, enddate, c).then((value) => datastep = value),
+                                            getMapStep(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_datastep = value),
+                                            getMapHeart(startdate, enddate, c).then((value) => dataheart = value),
+                                            getMapHeart(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_dataheart = value) 
+                                          ]);
                                           setState(() {
-                                            print("selected day");
                                             groupby = 'Day';
-                                            mycondition =
-                                                "DATE(dateTime / 1000, 'unixepoch')";
+                                            mycondition = c;
                                             stepsList = datastep;
                                             heartList = dataheart;
+                                            prevstepsList = prev_datastep;
+                                            prevheartList = prev_dataheart;
                                           });
                                         },
                                       ),
@@ -385,21 +454,26 @@ class _HomePageState extends State<HomePage> {
                                         groupValue: groupby,
                                         //if I'm selected, groupvalue will match value showing the filled button
                                         onChanged: timewindow == 'Hour' ? null : (String? value) async {
-                                          final datastep = await getMapStep(
-                                              startdate,
-                                              enddate,
-                                              "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':00:00'");
-                                          final dataheart = await getMapHeart(
-                                              startdate,
-                                              enddate,
-                                              "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':00:00'");
+                                          final c = "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':00:00'";
+                                          late Map<DateTime, double> datastep;
+                                          late Map<DateTime, double> prev_datastep;
+                                          late Map<DateTime, double> dataheart;
+                                          late Map<DateTime, double> prev_dataheart;
+                                          
+                                          final result = await Future.wait([
+                                            getMapStep(startdate, enddate, c).then((value) => datastep = value),
+                                            getMapStep(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_datastep = value),
+                                            getMapHeart(startdate, enddate, c).then((value) => dataheart = value),
+                                            getMapHeart(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_dataheart = value) 
+                                          ]);
                                           setState(() {
                                             print("selected hour");
                                             groupby = 'Hour';
-                                            mycondition =
-                                                "DATE(dateTime / 1000, 'unixepoch')";
+                                            mycondition = c;
                                             stepsList = datastep;
                                             heartList = dataheart;
+                                            prevstepsList = prev_datastep;
+                                            prevheartList = prev_dataheart;
                                           });
                                         },
                                       ),
@@ -417,21 +491,26 @@ class _HomePageState extends State<HomePage> {
                                         groupValue: groupby,
                                         //if I'm selected, groupvalue will match value showing the filled button
                                         onChanged: (String? value) async {
-                                          final datastep = await getMapStep(
-                                              startdate,
-                                              enddate,
-                                              "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':' || strftime('%M',  dateTime / 1000, 'unixepoch') || ':00'");
-                                          final dataheart = await getMapHeart(
-                                              startdate,
-                                              enddate,
-                                              "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':' || strftime('%M',  dateTime / 1000, 'unixepoch') || ':00'");
+                                          final c = "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':' || strftime('%M',  dateTime / 1000, 'unixepoch') || ':00'";
+                                          late Map<DateTime, double> datastep;
+                                          late Map<DateTime, double> prev_datastep;
+                                          late Map<DateTime, double> dataheart;
+                                          late Map<DateTime, double> prev_dataheart;
+                                          
+                                          final result = await Future.wait([
+                                            getMapStep(startdate, enddate, c).then((value) => datastep = value),
+                                            getMapStep(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_datastep = value),
+                                            getMapHeart(startdate, enddate, c).then((value) => dataheart = value),
+                                            getMapHeart(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_dataheart = value) 
+                                          ]);
                                           setState(() {
                                             print("selected minute");
                                             groupby = 'Minute';
-                                            mycondition =
-                                                "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':' || strftime('%M',  dateTime / 1000, 'unixepoch') || ':00'";
+                                            mycondition = c;
                                             stepsList = datastep;
                                             heartList = dataheart;
+                                            prevstepsList = prev_datastep;
+                                            prevheartList = prev_dataheart;
                                           });
                                         },
                                       ),
@@ -532,10 +611,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-//TODO: Disable groupings that don't have data: only minute for hour timeframe
-
   //Function to built plot for steps
-  Container _buildPlotSteps(BuildContext context, Map<DateTime, double> steps) {
+  Container _buildPlotSteps(BuildContext context, Map<DateTime, double> steps, Map<DateTime, double> prevsteps) {
     return Container(
       height: 200,
       child: Card(
@@ -545,7 +622,7 @@ class _HomePageState extends State<HomePage> {
               ? Center(
                   child: Image.asset('assets/images/walking.png',
                       width: 125, height: 125))
-              : _buildPlotWithDataSteps(context, steps),
+              : _buildPlotWithDataSteps(context, steps, prevsteps),
         ),
       ),
     );
@@ -553,15 +630,18 @@ class _HomePageState extends State<HomePage> {
 
   //Function to build plot with data
   Widget _buildPlotWithDataSteps(
-      BuildContext context, Map<DateTime, double> steps) {
+      BuildContext context, Map<DateTime, double> steps, Map<DateTime, double> prevsteps) {
     Map<DateTime, double> stepreference = {
       steps.keys.reduce((a,b) => a.isBefore(b) ? a : b): 50, //min start date
       steps.keys.reduce((a,b) => a.isAfter(b) ? a : b): 50 //max end date
     };
+    prevsteps = { 
+      for (var element in prevsteps.entries) element.key.add(Duration(days: 7)) : element.value 
+      };
     LineChart chart = LineChart.fromDateTimeMaps(
-      [steps, stepreference],
-      [Colors.blue, Colors.red],
-      ['Steps', 'Steps'],
+      [stepreference, prevsteps, steps],
+      [Colors.red, Colors.orange, Colors.blue],
+      ['Steps', 'Steps', 'Steps'],
       yAxisName: 'Steps',
       //showLegends: true,
       //legendPosition: LegendPosition.bottom,
@@ -585,6 +665,14 @@ class _HomePageState extends State<HomePage> {
                           ),Legend(
                             title: 'Step Reference',
                             color: Colors.red,
+                            showLeadingLine: true,
+                            style: TextStyle(
+                              color: Colors.black,
+                            ),
+                          ),
+                          Legend(
+                            title: 'Previous Week',
+                            color: Colors.orange,
                             showLeadingLine: true,
                             style: TextStyle(
                               color: Colors.black,
@@ -650,7 +738,7 @@ class _HomePageState extends State<HomePage> {
 
   //Function to built plot for steps
   Container _buildPlotHeart(
-      BuildContext context, Map<DateTime, double> hearts) {
+      BuildContext context, Map<DateTime, double> hearts, Map<DateTime, double> prevhearts) {
     return Container(
       height: 200,
       child: Card(
@@ -660,7 +748,7 @@ class _HomePageState extends State<HomePage> {
               ? Center(
                   child: Image.asset('assets/images/heart.png',
                       width: 125, height: 125))
-              : _buildPlotWithDataHeart(context, hearts),
+              : _buildPlotWithDataHeart(context, hearts, prevhearts),
         ),
       ),
     );
@@ -668,7 +756,7 @@ class _HomePageState extends State<HomePage> {
 
   //Function to build plot with data
   Widget _buildPlotWithDataHeart(
-      BuildContext context, Map<DateTime, double> hearts) {
+      BuildContext context, Map<DateTime, double> hearts, Map<DateTime, double> prevhearts) {
     Map<DateTime, double> heartlower = {
       hearts.keys.reduce((a,b) => a.isBefore(b) ? a : b): 60, //min start date
       hearts.keys.reduce((a,b) => a.isAfter(b) ? a : b): 60 //max end date
@@ -677,10 +765,13 @@ class _HomePageState extends State<HomePage> {
       hearts.keys.reduce((a,b) => a.isBefore(b) ? a : b): 100, //min start date
       hearts.keys.reduce((a,b) => a.isAfter(b) ? a : b): 100 //max end date
     };
+    prevhearts = { 
+      for (var element in prevhearts.entries) element.key.add(Duration(days: 7)) : element.value 
+      };
     LineChart chart = LineChart.fromDateTimeMaps(
-      [hearts, heartlower, heartupper],
-      [Colors.blue, Colors.red, Colors.black],
-      ['Heart Rate', 'Heart Rate', 'Heart Rate'],
+      [prevhearts, heartlower, heartupper, hearts],
+      [Colors.orange, Colors.red, Colors.black, Colors.blue],
+      ['Heart Rate', 'Heart Rate', 'Heart Rate', 'Heart Rate'],
       yAxisName: 'Heart Rate',
       //showLegends: true,
       //legendPosition: LegendPosition.bottom,
@@ -712,6 +803,14 @@ class _HomePageState extends State<HomePage> {
                           Legend(
                             title: 'HR Upper',
                             color: Colors.black,
+                            showLeadingLine: true,
+                            style: TextStyle(
+                              color: Colors.black,
+                            ),
+                          ),
+                          Legend(
+                            title: 'Previous Week',
+                            color: Colors.orange,
                             showLeadingLine: true,
                             style: TextStyle(
                               color: Colors.black,
