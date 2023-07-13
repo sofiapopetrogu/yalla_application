@@ -26,9 +26,12 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
+// Class that describes activity of the home page
 class _HomePageState extends State<HomePage> {
+  // Function requests the list of patients from the API and when it gets them, updates the state
+  // in case of error, it retries the API call
   void getPatients() {
-    Data_Access.getPatients().then((value) {
+    DataAccess.getPatients().then((value) {
       setState(() {
         patients = value;
         currentpatient = patients[0].username;
@@ -40,13 +43,17 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+
   _HomePageState() : super() {
+    // When you create the state, it immediately asks for the patient
     getPatients();
   }
+  //Initializing attributes of the state
   Map<DateTime, double> stepsList = Map();
   Map<DateTime, double> prevstepsList = Map();
   Map<DateTime, double> heartList = Map();
   Map<DateTime, double> prevheartList = Map();
+  // Set range of a week with endate being yesterday and startdate being 7 days before
   final DateTime enddate =
       DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
           .subtract(Duration(seconds: 1));
@@ -54,6 +61,7 @@ class _HomePageState extends State<HomePage> {
       DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
           .subtract(Duration(seconds: 1))
           .subtract(Duration(days: 7));
+  // Set initial date group by condition to be by day; can be changed to hour or minute as indicated in comment below
   String mycondition = "DATE(dateTime / 1000, 'unixepoch') ";
   /*
       for group by day
@@ -72,7 +80,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     //initialize stepPlot
-
+    
     Container stepPlot = _buildPlotSteps(context, stepsList, prevstepsList);
     Container heartPlot = _buildPlotHeart(context, heartList, prevheartList);
 
@@ -81,71 +89,86 @@ class _HomePageState extends State<HomePage> {
         title: Text(HomePage.routename),
         backgroundColor: Colors.teal, // Set the background color to teal
       ),
-      // await inserting data and then call other DAOs in the body
+      // Floating Action Button is shown only if there are patients already downloaded from API
       floatingActionButton: patients.isEmpty
           ? null
           : FloatingActionButton(
               onPressed: () async {
 
-                //clear table before inserting steps
+                //clear table before inserting steps/heart
                 await Provider.of<DatabaseRepository>(context, listen: false)
                     .deleteAllSteps();
                 await Provider.of<DatabaseRepository>(context, listen: false)
                     .deleteAllHeart();
+                //sets API Authentication token
                 await Authentication.getAndStoreTokens();
 
+
+                // Wait for all four API calls to finish
                 await Future.wait([
-                  Data_Access.getStepWeek(
+                  // Get steps for the current week
+                  DataAccess.getStepWeek(
                       enddate.subtract(Duration(days: 7)),
                       enddate,
                       currentpatient).then((steps) async {
+                        //once API call is finished, insert steps into database
                         await Provider.of<DatabaseRepository>(context, listen: false)
                           .database
                           .stepDao
                           .insertMultSteps(steps
-                              .map((step) => Steps_Daily(
+                          //map API objects to database objects
+                              .map((step) => StepsDaily(
                                   steps: step.value,
                                   dateTime: step.time,
                                   patient: step.patient))
                               .toList());
                       }),
-                  Data_Access.getStepWeek(
+                  // Get steps for the previous week
+                  DataAccess.getStepWeek(
                       enddate.subtract(Duration(days: 15)),
                       enddate.subtract(Duration(days: 8)),
                       currentpatient).then((prev_steps) async {
+                        //once API call is finished, insert steps into database
                         await Provider.of<DatabaseRepository>(context, listen: false)
                           .database
                           .stepDao
                           .insertMultSteps(prev_steps
-                              .map((step) => Steps_Daily(
+                          //map API objects to database objects
+                              .map((step) => StepsDaily(
                                   steps: step.value,
                                   dateTime: step.time,
                                   patient: step.patient))
                               .toList());
                       }),
-                  Data_Access.getHeartWeek(
+                  // Get heart rate for the current week
+                  DataAccess.getHeartWeek(
                       enddate.subtract(Duration(days: 7)),
                       enddate,
                       currentpatient).then((hearts) async {
+                        //once API call is finished, insert heart data into database
                         await Provider.of<DatabaseRepository>(context, listen: false)
                           .database
                           .heartDao
                           .insertMultHeart(hearts
-                              .map((heart) => Heart_Daily(
+                          //map API objects to database objects
+                              .map((heart) => HeartDaily(
                                   heart: heart.value,
                                   dateTime: heart.time,
                                   patient: heart.patient))
                               .toList());
                       }),
-                  Data_Access.getHeartWeek(
+                  // Get heart rate for the current week
+                  DataAccess.getHeartWeek(
                       enddate.subtract(Duration(days: 15)),
                       enddate.subtract(Duration(days: 8)),
                       currentpatient).then((prev_hearts) async {
+                        //once API call is finished, insert heart data into database
                         await Provider.of<DatabaseRepository>(context, listen: false)
                           .database
                           .heartDao
                           .insertMultHeart(prev_hearts
-                              .map((heart) => Heart_Daily(
+                          //map API objects to database objects
+                              .map((heart) => HeartDaily(
                                   heart: heart.value,
                                   dateTime: heart.time,
                                   patient: heart.patient))
@@ -153,19 +176,23 @@ class _HomePageState extends State<HomePage> {
                       })
                 ]);
                 
+                // Variables to store data from the database queries below
+                // late suggests initialization will happen later in code
                 late Map<DateTime, double> datastep;
                 late Map<DateTime, double> prev_datastep;
                 late Map<DateTime, double> dataheart;
                 late Map<DateTime, double> prev_dataheart;
                 
                 final result = await Future.wait([
+                  // 4 DB queries to get steps and heart data for the current and previous week perfomed in parallel
+                  // Once DB query is executed, value of result is mapped to the corresponding variable above
                   getMapStep(startdate, enddate, mycondition).then((value) => datastep = value),
                   getMapStep(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), mycondition).then((value) => prev_datastep = value),
                   getMapHeart(startdate, enddate, mycondition).then((value) => dataheart = value),
                   getMapHeart(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), mycondition).then((value) => prev_dataheart = value) 
                 ]);
 
-
+                // Once all DB queries are finished, update the state of the app
                 setState(() {
                   download = true;
                   stepsList = datastep;
@@ -174,9 +201,11 @@ class _HomePageState extends State<HomePage> {
                   prevheartList = prev_dataheart;
                 });
               },
+              // Other attributes of floating action button
               child: Icon(Icons.update),
               backgroundColor: Colors.teal,
             ),
+            // Scroll view allows you to scroll down the page
       body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -187,8 +216,9 @@ class _HomePageState extends State<HomePage> {
                       mainAxisSize: MainAxisSize.max,
                       children: [
                         Container(
+                          // Sets width of container to the width of the screen
                           width: MediaQuery.of(context).size.width,
-                          child: Text(
+                          child: const Text(
                                       'Choose your patient:',
                                       style: TextStyle(
                                         fontSize: 15.0,
@@ -199,6 +229,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                         Container(
                             width: MediaQuery.of(context).size.width,
+                            // Dropdown menu to select patient
                             child: DropdownButton<String>(
                               disabledHint: const Text("Loading"),
                               value: currentpatient,
@@ -208,14 +239,17 @@ class _HomePageState extends State<HomePage> {
                                 height: 2,
                                 color: Colors.teal,
                               ),
+                              // When you select a patient in the dropdown menu, update the state of the app for currentpatient
                               onChanged: (String? value) {
                                 // This is called when the user selects an item.
                                 setState(() {
                                   currentpatient = value!;
                                 });
                               },
+                              // If API has not finished loading, don't make dropdown menu selectable
                               items: patients.isEmpty
                                   ? null
+                                  // Otherwise, map the list of patients to dropdown menu items
                                   : patients
                                       .map<DropdownMenuItem<String>>(
                                           (value) => DropdownMenuItem<String>(
@@ -227,6 +261,8 @@ class _HomePageState extends State<HomePage> {
                       ],
                     )),
               ] +
+              // If API has not finished loading, display a blank screen
+              // Otherwise, display everything below
               (patients.isEmpty
                   ? []
                   : [
@@ -252,6 +288,7 @@ class _HomePageState extends State<HomePage> {
                                 padding: EdgeInsets.only(top: 5.0, bottom: 5.0),
                                 child: Column(
                                   children: [
+                                    // Radio buttons to select timeframe in a list tile
                                     ListTile(
                                       dense: true,
                                       contentPadding:
@@ -260,24 +297,31 @@ class _HomePageState extends State<HomePage> {
                                           style: TextStyle(
                                             fontSize: 14.0,
                                           )),
+                                      // First radio button represents Week timeframe
                                       leading: Radio<String>(
                                         value: 'Week',
                                         groupValue: timewindow,
                                         //if I'm selected, groupvalue will match value showing the filled button
                                         onChanged: (String? value) async {
+                                          // startdate is 7 days before enddate
                                           startdate = enddate
                                               .subtract(Duration(days: 7));
+                                          // Variables initialized that will be defined later in the code
                                           late Map<DateTime, double> datastep;
                                           late Map<DateTime, double> prev_datastep;
                                           late Map<DateTime, double> dataheart;
                                           late Map<DateTime, double> prev_dataheart;
                                           
+                                          
                                           final result = await Future.wait([
+                                            // 4 DB queries to get steps and heart data for the current and previous week perfomed in parallel
+                                            // Once DB query is executed, value of result is mapped to the corresponding variable above
                                             getMapStep(startdate, enddate, mycondition).then((value) => datastep = value),
                                             getMapStep(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), mycondition).then((value) => prev_datastep = value),
                                             getMapHeart(startdate, enddate, mycondition).then((value) => dataheart = value),
                                             getMapHeart(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), mycondition).then((value) => prev_dataheart = value) 
                                           ]);
+                                          // After mapping of results to variables, set state of app
                                           setState(() {
                                             timewindow = 'Week';
                                             startdate = enddate
@@ -298,6 +342,7 @@ class _HomePageState extends State<HomePage> {
                                           style: TextStyle(
                                             fontSize: 14.0,
                                           )),
+                                      // Second radio button is day for timeframe
                                       leading: Radio<String>(
                                         value: 'Day',
                                         groupValue: timewindow,
@@ -305,19 +350,24 @@ class _HomePageState extends State<HomePage> {
                                         onChanged: (String? value) async {
                                           startdate = enddate
                                               .subtract(Duration(days: 1));
+                                          // Initialized variables that will be defined below
                                           late Map<DateTime, double> datastep;
                                           late Map<DateTime, double> prev_datastep;
                                           late Map<DateTime, double> dataheart;
                                           late Map<DateTime, double> prev_dataheart;
                                           
+                                          // Condition that avoids grouping that matches the selected timeframe, i.e. if your timeframe is Day, you cannot also select Week in the groupby
                                           final c = groupby == 'Day' ? "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':00:00'" : mycondition;
                                           
                                           final result = await Future.wait([
+                                            // 4 DB queries to get steps and heart data for the current and previous week perfomed in parallel
+                                            // Once DB query is executed, value of result is mapped to the corresponding variable above
                                             getMapStep(startdate, enddate, c).then((value) => datastep = value),
                                             getMapStep(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_datastep = value),
                                             getMapHeart(startdate, enddate, c).then((value) => dataheart = value),
                                             getMapHeart(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_dataheart = value) 
                                           ]);
+                                          // After mapping of results to variables, set state of app
                                           setState(() {
                                             timewindow = 'Day';
                                             if (groupby == 'Day') {
@@ -342,6 +392,7 @@ class _HomePageState extends State<HomePage> {
                                           style: TextStyle(
                                             fontSize: 14.0,
                                           )),
+                                      // Final Radio Button for timeframe is hour
                                       leading: Radio<String>(
                                         value: 'Hour',
                                         groupValue: timewindow,
@@ -349,19 +400,24 @@ class _HomePageState extends State<HomePage> {
                                         onChanged: (String? value) async {
                                           startdate = enddate
                                               .subtract(Duration(hours: 1));
+                                          // Initialized variables that will be defined below
                                           late Map<DateTime, double> datastep;
                                           late Map<DateTime, double> prev_datastep;
                                           late Map<DateTime, double> dataheart;
                                           late Map<DateTime, double> prev_dataheart;
 
+                                          // Condition that avoids grouping that matches the selected timeframe, i.e. if your timeframe is Hour, you cannot also select Hour in the groupby
                                           final c = "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':' || strftime('%M',  dateTime / 1000, 'unixepoch') || ':00'";
 
                                           final result = await Future.wait([
+                                            // 4 DB queries to get steps and heart data for the current and previous week perfomed in parallel
+                                            // Once DB query is executed, value of result is mapped to the corresponding variable above
                                             getMapStep(startdate, enddate, c).then((value) => datastep = value),
                                             getMapStep(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_datastep = value),
                                             getMapHeart(startdate, enddate, c).then((value) => dataheart = value),
                                             getMapHeart(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_dataheart = value) 
                                           ]);
+                                          // After mapping of results to variables, set state of app
                                           setState(() {
                                             timewindow = 'Hour';
                                             groupby = 'Minute';
@@ -382,6 +438,7 @@ class _HomePageState extends State<HomePage> {
                             ]),
                           ),
                           Expanded(
+                            // Second column in row will be a listtile of Group By conditions for how to group the timeframe data
                               child: Column(
                             children: [
                               const Padding(
@@ -413,23 +470,31 @@ class _HomePageState extends State<HomePage> {
                                           style: TextStyle(
                                             fontSize: 14.0,
                                           )),
+                                      // First radio button for Grouping that represents Day
                                       leading: Radio<String>(
                                         value: 'Day',
                                         groupValue: groupby,
                                         //if I'm selected, groupvalue will match value showing the filled button
+                                        // Disable Day group if timewindow is Hour or Day
                                         onChanged: timewindow == 'Hour' || timewindow == 'Day' ? null : (String? value) async {
+                                          // Condition that avoids grouping that matches the selected timeframe, i.e. if your timeframe is Day, you cannot also select Day in the groupby
                                           final c = "DATE(dateTime / 1000, 'unixepoch')";
+
+                                          // Initialized variables that will be defined below
                                           late Map<DateTime, double> datastep;
                                           late Map<DateTime, double> prev_datastep;
                                           late Map<DateTime, double> dataheart;
                                           late Map<DateTime, double> prev_dataheart;
                                           
                                           final result = await Future.wait([
+                                            // 4 DB queries to get steps and heart data for the current and previous week perfomed in parallel
+                                            // Once DB query is executed, value of result is mapped to the corresponding variable above
                                             getMapStep(startdate, enddate, c).then((value) => datastep = value),
                                             getMapStep(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_datastep = value),
                                             getMapHeart(startdate, enddate, c).then((value) => dataheart = value),
                                             getMapHeart(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_dataheart = value) 
                                           ]);
+                                          // After mapping of results to variables, set state of app
                                           setState(() {
                                             groupby = 'Day';
                                             mycondition = c;
@@ -449,23 +514,30 @@ class _HomePageState extends State<HomePage> {
                                           style: TextStyle(
                                             fontSize: 14.0,
                                           )),
+                                      // 2nd Radio Button of Group by is Hour
                                       leading: Radio<String>(
                                         value: 'Hour',
                                         groupValue: groupby,
                                         //if I'm selected, groupvalue will match value showing the filled button
+                                        // Disables radiobutton for Hour if Hour timewindow is selected
                                         onChanged: timewindow == 'Hour' ? null : (String? value) async {
+                                          // Condition that avoids grouping that matches the selected timeframe, i.e. if your timeframe is Hour, you cannot also select Hour in the groupby
                                           final c = "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':00:00'";
+                                          // Initialized variables that will be defined below                                          
                                           late Map<DateTime, double> datastep;
                                           late Map<DateTime, double> prev_datastep;
                                           late Map<DateTime, double> dataheart;
                                           late Map<DateTime, double> prev_dataheart;
                                           
                                           final result = await Future.wait([
+                                            // 4 DB queries to get steps and heart data for the current and previous week perfomed in parallel
+                                            // Once DB query is executed, value of result is mapped to the corresponding variable above
                                             getMapStep(startdate, enddate, c).then((value) => datastep = value),
                                             getMapStep(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_datastep = value),
                                             getMapHeart(startdate, enddate, c).then((value) => dataheart = value),
                                             getMapHeart(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_dataheart = value) 
                                           ]);
+                                           // After mapping of results to variables, set state of app
                                           setState(() {
                                             print("selected hour");
                                             groupby = 'Hour';
@@ -486,23 +558,30 @@ class _HomePageState extends State<HomePage> {
                                           style: TextStyle(
                                             fontSize: 14.0,
                                           )),
+                                      // Final Radio button of Group By is Minute
                                       leading: Radio<String>(
                                         value: 'Minute',
                                         groupValue: groupby,
                                         //if I'm selected, groupvalue will match value showing the filled button
+                                        // You can group by minute no matter the time frame
                                         onChanged: (String? value) async {
                                           final c = "DATE(dateTime / 1000, 'unixepoch') || ' ' || strftime('%H',  dateTime / 1000, 'unixepoch') || ':' || strftime('%M',  dateTime / 1000, 'unixepoch') || ':00'";
+
+                                          // Initialized variables that will be defined below 
                                           late Map<DateTime, double> datastep;
                                           late Map<DateTime, double> prev_datastep;
                                           late Map<DateTime, double> dataheart;
                                           late Map<DateTime, double> prev_dataheart;
                                           
                                           final result = await Future.wait([
+                                            // 4 DB queries to get steps and heart data for the current and previous week perfomed in parallel
+                                            // Once DB query is executed, value of result is mapped to the corresponding variable above
                                             getMapStep(startdate, enddate, c).then((value) => datastep = value),
                                             getMapStep(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_datastep = value),
                                             getMapHeart(startdate, enddate, c).then((value) => dataheart = value),
                                             getMapHeart(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), c).then((value) => prev_dataheart = value) 
                                           ]);
+                                          // After mapping of results to variables, set state of app
                                           setState(() {
                                             print("selected minute");
                                             groupby = 'Minute';
@@ -527,6 +606,7 @@ class _HomePageState extends State<HomePage> {
                     ]),
         ),
       ),
+      // Logout option available in drawer on top left 
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -545,6 +625,8 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
+      // Clickable icons to nagivate to other pages
+      // Dashboard is the current page, so it is not clickable
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         items: const [
@@ -578,6 +660,7 @@ class _HomePageState extends State<HomePage> {
     );
   } //build
 
+  // Function to navigate to login page
   void _toLoginPage(BuildContext context) async {
     //Unset the 'username' filed in SharedPreference
     final sp = await SharedPreferences.getInstance();
@@ -590,6 +673,7 @@ class _HomePageState extends State<HomePage> {
         .pushReplacement(MaterialPageRoute(builder: (context) => LoginPage()));
   }
 
+  // Function to navigate to profile page
   void _toProfile(BuildContext context) {
     Navigator.push(
       context,
@@ -597,6 +681,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Function to navigate to community page
   void _toCommunity(BuildContext context) {
     Navigator.push(
       context,
@@ -604,6 +689,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Function to navigate to settings page
   void _toSettings(BuildContext context) {
     Navigator.push(
       context,
@@ -611,13 +697,16 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  //Function to built plot for steps
-  Container _buildPlotSteps(BuildContext context, Map<DateTime, double> steps, Map<DateTime, double> prevsteps) {
+  //Function to visualize step plot
+  Container _buildPlotSteps(
+    BuildContext context, Map<DateTime, double> steps, Map<DateTime, double> prevsteps) {
     return Container(
       height: 200,
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
+          // If step data is not available or download is false, display temporaray image
+          // otherwise, return plot
           child: (steps.isEmpty || !download)
               ? Center(
                   child: Image.asset('assets/images/walking.png',
@@ -631,25 +720,23 @@ class _HomePageState extends State<HomePage> {
   //Function to build plot with data
   Widget _buildPlotWithDataSteps(
       BuildContext context, Map<DateTime, double> steps, Map<DateTime, double> prevsteps) {
+        // Create a reference line of 50 steps from min start date to max end date
     Map<DateTime, double> stepreference = {
       steps.keys.reduce((a,b) => a.isBefore(b) ? a : b): 50, //min start date
       steps.keys.reduce((a,b) => a.isAfter(b) ? a : b): 50 //max end date
     };
+    // Reset date value of steps from previous week to align with current week
     prevsteps = { 
       for (var element in prevsteps.entries) element.key.add(Duration(days: 7)) : element.value 
       };
+    // Build the chart using reference line and steps from current and previous week
     LineChart chart = LineChart.fromDateTimeMaps(
       [stepreference, prevsteps, steps],
       [Colors.red, Colors.orange, Colors.blue],
       ['Steps', 'Steps', 'Steps'],
       yAxisName: 'Steps',
-      //showLegends: true,
-      //legendPosition: LegendPosition.bottom,
-      //legendStyle: TextStyle(color: Colors.black),
-      //chartValueStyle: TextStyle(color: Colors.black),
-      //dateTimeFactory: const LocalDateTimeFactory(),
     );
-    //AreaLineChart()
+    // Display plot and legends
     return Column(children: [
       Expanded(
           child: Padding(
@@ -682,12 +769,11 @@ class _HomePageState extends State<HomePage> {
                 chart,
                 gridColor: Colors.black,
                 toolTipColor: Colors.white,
-
-                //chartValueStyle: TextStyle(color: Colors.black),
               )))
     ]);
   } //buildPlotWithDataSteps
 
+  // Future that is a promise to run a query in the DB that maps patient step data to date and step values in a map
   Future<Map<DateTime, double>> getMapStep(
       startdate, enddate, mycondition) async {
     final AppDatabase database =
@@ -700,7 +786,7 @@ class _HomePageState extends State<HomePage> {
       SELECT $mycondition as date,
         AVG(steps) AS steps
       FROM 
-        Steps_Daily
+        StepsDaily
       WHERE 
         dateTime > $start_date AND dateTime < $end_date
       GROUP BY $mycondition
@@ -709,9 +795,11 @@ class _HomePageState extends State<HomePage> {
             .map((e) =>
                 Pair(DateTime.parse(e['date'] as String), e['steps'] as double))
             .toList();
+    // Pass list of key: value pairs to map
     return {for (var item in list) item.left: item.right};
   } //getMap
-
+  
+  // Future that is a promise to run a query in the DB that maps patient heart data to date and heart values in a map
   Future<Map<DateTime, double>> getMapHeart(
       startdate, enddate, mycondition) async {
     final AppDatabase database =
@@ -724,7 +812,7 @@ class _HomePageState extends State<HomePage> {
       SELECT $mycondition as date,
         AVG(heart) AS heart
       FROM 
-        Heart_Daily
+        HeartDaily
       WHERE 
         dateTime > $start_date AND dateTime < $end_date
       GROUP BY $mycondition
@@ -733,10 +821,11 @@ class _HomePageState extends State<HomePage> {
             .map((e) =>
                 Pair(DateTime.parse(e['date'] as String), e['heart'] as double))
             .toList();
+    // Pass list of key: value pairs to map
     return {for (var item in list) item.left: item.right};
   } //getMap
 
-  //Function to built plot for steps
+  //Function to visualize plot
   Container _buildPlotHeart(
       BuildContext context, Map<DateTime, double> hearts, Map<DateTime, double> prevhearts) {
     return Container(
@@ -744,6 +833,8 @@ class _HomePageState extends State<HomePage> {
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
+          // if heart data is not available and download if false, display temporary heart image
+          // otherwise, return heart data plot
           child: (hearts.isEmpty || !download)
               ? Center(
                   child: Image.asset('assets/images/heart.png',
@@ -757,28 +848,28 @@ class _HomePageState extends State<HomePage> {
   //Function to build plot with data
   Widget _buildPlotWithDataHeart(
       BuildContext context, Map<DateTime, double> hearts, Map<DateTime, double> prevhearts) {
+    // Create lower bound reference line for heart rate from min to max start and end date
     Map<DateTime, double> heartlower = {
       hearts.keys.reduce((a,b) => a.isBefore(b) ? a : b): 60, //min start date
       hearts.keys.reduce((a,b) => a.isAfter(b) ? a : b): 60 //max end date
     };
+    // Create upper bound reference line for heart rate from min to max start and end date
     Map<DateTime, double> heartupper = {
       hearts.keys.reduce((a,b) => a.isBefore(b) ? a : b): 100, //min start date
       hearts.keys.reduce((a,b) => a.isAfter(b) ? a : b): 100 //max end date
     };
+    // Update datetime values for previous week heart data to current week date time to align with current week 
     prevhearts = { 
       for (var element in prevhearts.entries) element.key.add(Duration(days: 7)) : element.value 
       };
+    // Create chart from LineChart class that includes heart data from current and previous week, as well as the two reference lines
     LineChart chart = LineChart.fromDateTimeMaps(
       [prevhearts, heartlower, heartupper, hearts],
       [Colors.orange, Colors.red, Colors.black, Colors.blue],
       ['Heart Rate', 'Heart Rate', 'Heart Rate', 'Heart Rate'],
       yAxisName: 'Heart Rate',
-      //showLegends: true,
-      //legendPosition: LegendPosition.bottom,
-      //legendStyle: TextStyle(color: Colors.black),
-      //chartValueStyle: TextStyle(color: Colors.black),
-      //dateTimeFactory: const LocalDateTimeFactory(),
     );
+    // Display legends and chart
     return Column(children: [
       Expanded(
           child: Padding(

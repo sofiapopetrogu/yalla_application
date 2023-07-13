@@ -18,7 +18,4 @@ abstract class PatientDao {
   @delete
   Future<void> deletePatient(Patient patients);
 
-  //Query #4: UPDATE -> this allows to update a Patient entry
- /*  @Update(onConflict: OnConflictStrategy.fail)
-  Future<void> updatePatient(Patient patients); */
 }//PatientsDao

@@ -1,8 +1,4 @@
-// ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors
-
 import 'package:flutter/material.dart';
-
-//import 'package:charts_flutter/flutter.dart' as charts;
 
 class CommunityHub extends StatelessWidget {
   const CommunityHub({Key? key}) : super(key: key);
@@ -18,7 +14,7 @@ class CommunityHub extends StatelessWidget {
       ),
       body: SingleChildScrollView(
         child: Column(
-          children: [
+          children: const [
             // Section: Previous User Experiences
             Card(
               child: ExpansionTile(
@@ -85,27 +81,6 @@ class CommunityHub extends StatelessWidget {
                 ],
               ),
             ),
-
-            // Section: Graphs
-            /* Card(
-              child: Container(
-                padding: EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    Text('Health Trends'),
-                    SizedBox(height: 8.0),
-                    Container(
-                      height: 200.0,
-                      child: charts.LineChart(
-                        _createSampleData(),
-                        animate: true,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ), */
-            // Back Button
           ],
         ),
       ),
@@ -114,4 +89,3 @@ class CommunityHub extends StatelessWidget {
 
 }
 
-//autogeneration can be a future improvement

@@ -15,7 +15,7 @@ import 'package:project_app/database/patients/patients.dart';
 part 'db.g.dart'; 
 
 @TypeConverters([DateTimeConverter])
-@Database(version: 1, entities: [Patient, Steps_Daily, Heart_Daily])
+@Database(version: 1, entities: [Patient, StepsDaily, HeartDaily])
 abstract class AppDatabase extends FloorDatabase {
   PatientDao get patientDao;
   StepDao get stepDao;

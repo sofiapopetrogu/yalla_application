@@ -13,30 +13,30 @@ class DatabaseRepository extends ChangeNotifier{
   DatabaseRepository({required this.database});
 
 
-//Heart_Daily
+//HeartDaily
 
   //This method wraps the findHeartbyDate() method of the DAO. 
-  Future<List<Heart_Daily>> findHeartbyDate(DateTime startTime, DateTime endTime) async{
+  Future<List<HeartDaily>> findHeartbyDate(DateTime startTime, DateTime endTime) async{
     final results = await database.heartDao.findHeartbyDate(startTime, endTime);
     return results;
   }//findHeartbyDate
 
   //This method wraps the findAllHeart() method of the DAO. 
-  Future<List<Heart_Daily>> findAllHeart() async{
+  Future<List<HeartDaily>> findAllHeart() async{
     final results = await database.heartDao.findAllHeart();
     return results;
   }//findAllHeart
 
   //This method wraps the insertHeart() method of the DAO. 
   //Then, it notifies the listeners that something changed.
-  Future<void> insertHeart(Heart_Daily heartdaily) async {
+  Future<void> insertHeart(HeartDaily heartdaily) async {
     await database.heartDao.insertHeart(heartdaily);
     notifyListeners();
   }//insertHeart
 
   //This method wraps the deleteHeart() method of the DAO. 
   //Then, it notifies the listeners that something changed.
-  Future<void> deleteHeart(Heart_Daily heartdaily) async{
+  Future<void> deleteHeart(HeartDaily heartdaily) async{
     await database.heartDao.deleteHeart(heartdaily);
     notifyListeners();
   }//deleteHeart
@@ -62,7 +62,7 @@ class DatabaseRepository extends ChangeNotifier{
     notifyListeners();
   }//deletePatient
 
-//Steps_Daily
+//StepsDaily
   Future<void> deleteAllSteps() async{
     await database.stepDao.deleteAllSteps();
     notifyListeners();
@@ -74,21 +74,14 @@ class DatabaseRepository extends ChangeNotifier{
   }//deleteAllSteps
 
   //This method wraps the findAllSteps() method of the DAO. 
-  Future<List<Steps_Daily>> findAllSteps() async{
+  Future<List<StepsDaily>> findAllSteps() async{
     final results = await database.stepDao.findAllSteps();
     return results;
   }//findAllSteps
 
-  //This method wraps the insertSteps() method of the DAO. 
-  //Then, it notifies the listeners that something changed.
-  //Future<void> insertSteps(Steps_Daily stepsdaily) async {
-  //  await database.stepDao.insertSteps(stepsdaily);
-  //  notifyListeners();
-  //}//insertSteps
-
   //This method wraps the deleteSteps() method of the DAO. 
   //Then, it notifies the listeners that something changed.
-  Future<void> deleteSteps(Steps_Daily stepsdaily) async{
+  Future<void> deleteSteps(StepsDaily stepsdaily) async{
     await database.stepDao.deleteSteps(stepsdaily);
     notifyListeners();
   }//deleteSteps

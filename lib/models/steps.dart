@@ -1,3 +1,4 @@
+// model for API to accept steps data
 class Steps{
   final DateTime time;
   final int value;

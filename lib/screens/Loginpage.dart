@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:project_app/screens/homepage.dart';
 import 'package:flutter_login/flutter_login.dart';
-import 'package:flutter_login/theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
@@ -28,7 +27,7 @@ class _LoginPageState extends State<LoginPage> {
     if(sp.getString('username') != null){
       //If 'username is set, push the HomePage
       _toHomePage(context);
-    }//if
+    }
   }//_checkLogin
 
   Future<String> _loginUser(LoginData data) async {
@@ -56,7 +55,7 @@ class _LoginPageState extends State<LoginPage> {
     
     return FlutterLogin(
       title: 'Welcome',
-      logo: AssetImage('assets/images/yalla.png'), //need to add Logo here
+      logo: AssetImage('assets/images/yalla.png'), // Logo for App
       onLogin: _loginUser,
       onSignup: _signUpUser,
       onRecoverPassword: _recoverPassword,
@@ -65,6 +64,7 @@ class _LoginPageState extends State<LoginPage> {
       },
     );
   } // build
+  
   void _toHomePage(BuildContext context) async{
     Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomePage()));
   }//_toHomePage

@@ -1,3 +1,4 @@
+// model for API to accept heart data
 class Heart{
   final DateTime time;
   final int value;

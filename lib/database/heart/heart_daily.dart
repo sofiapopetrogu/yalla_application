@@ -2,7 +2,7 @@ import 'package:floor/floor.dart';
 
 //Here, we are saying to floor that this is a class that defines an entity
 @entity
-class Heart_Daily {
+class HeartDaily {
   @PrimaryKey(autoGenerate: true)
   final int? id;
 
@@ -16,6 +16,6 @@ class Heart_Daily {
   final String patient; 
 
   //Default constructor
-  Heart_Daily({this.id, required this.heart, required this.dateTime, required this.patient});
+  HeartDaily({this.id, required this.heart, required this.dateTime, required this.patient});
   
 }//Todo

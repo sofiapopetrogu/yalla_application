@@ -1,7 +1,6 @@
 // ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors
 
 import 'package:flutter/material.dart';
-import 'dart:async';
 
 class Settings extends StatefulWidget {
   const Settings({Key? key}) : super(key: key);
@@ -9,12 +8,12 @@ class Settings extends StatefulWidget {
   static const routename = 'Settings';
 
   @override
-  _SettingsState createState() => _SettingsState();
+  SettingsState createState() => SettingsState();
 }
 
-class _SettingsState extends State<Settings> {
+class SettingsState extends State<Settings> {
   bool _notificationEnabled = true;
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
   void _performSearch() {
@@ -22,8 +21,7 @@ class _SettingsState extends State<Settings> {
     setState(() {
       _searchQuery = query;
     });
-    // Implement your search logic here
-    // This is just a sample action
+    // Pop-up of search button
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -103,9 +101,7 @@ class _SettingsState extends State<Settings> {
               onTap: () {
                 // Perform action when privacy settings is tapped
               },
-            ),
-            
-            
+            ),  
           ],
         ),
       ),

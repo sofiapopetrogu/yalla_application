@@ -6,25 +6,22 @@ import 'package:floor/floor.dart';
 @dao
 abstract class StepDao {
   //Query #1: SELECT -> this allows to obtain all the entries of the steps_daily table
-  @Query('SELECT * FROM Steps_Daily')
-  Future<List<Steps_Daily>> findAllSteps();
+  @Query('SELECT * FROM StepsDaily')
+  Future<List<StepsDaily>> findAllSteps();
 
   //Query #2: INSERT -> this allows to add a row in the table
   @insert
-  Future<void> insertSteps(Steps_Daily stepsdaily); // void ensures that the results are not returned
+  Future<void> insertSteps(StepsDaily stepsdaily); // void ensures that the results are not returned
   @insert
-  Future<void> insertMultSteps(List<Steps_Daily> stepsdaily);
+  Future<void> insertMultSteps(List<StepsDaily> stepsdaily);
 
   //Query #3: DELETE -> this allows to delete a row from the table
   @delete
-  Future<void> deleteSteps(Steps_Daily stepsdaily);
+  Future<void> deleteSteps(StepsDaily stepsdaily);
 
   //Query #4:  Delete all entries from table
-  @Query('DELETE FROM Steps_Daily WHERE 1')
+  @Query('DELETE FROM StepsDaily WHERE 1')
   Future<void> deleteAllSteps();
-    //Query #4: UPDATE -> this allows to update a HeartRate entry
- /*  @Update(onConflict: OnConflictStrategy.replace)
-  Future<void> updateHeartRate(Steps_Daily stepsdaily); */
 
 
 }//TodoDao

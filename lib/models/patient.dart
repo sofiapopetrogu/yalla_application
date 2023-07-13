@@ -1,3 +1,4 @@
+// model for API to accept patient data
 class Patients{
   final String username;
   final int birthyear;

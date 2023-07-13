@@ -91,9 +91,9 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Patient` (`id` TEXT, `birthday` INTEGER NOT NULL, `sex` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Steps_Daily` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `steps` INTEGER NOT NULL, `dateTime` INTEGER NOT NULL, `patient` TEXT NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `StepsDaily` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `steps` INTEGER NOT NULL, `dateTime` INTEGER NOT NULL, `patient` TEXT NOT NULL)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Heart_Daily` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `heart` INTEGER NOT NULL, `dateTime` INTEGER NOT NULL, `patient` TEXT NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `HeartDaily` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `heart` INTEGER NOT NULL, `dateTime` INTEGER NOT NULL, `patient` TEXT NOT NULL)');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -178,8 +178,8 @@ class _$StepDao extends StepDao {
   )   : _queryAdapter = QueryAdapter(database),
         _steps_DailyInsertionAdapter = InsertionAdapter(
             database,
-            'Steps_Daily',
-            (Steps_Daily item) => <String, Object?>{
+            'StepsDaily',
+            (StepsDaily item) => <String, Object?>{
                   'id': item.id,
                   'steps': item.steps,
                   'dateTime': _dateTimeConverter.encode(item.dateTime),
@@ -187,9 +187,9 @@ class _$StepDao extends StepDao {
                 }),
         _steps_DailyDeletionAdapter = DeletionAdapter(
             database,
-            'Steps_Daily',
+            'StepsDaily',
             ['id'],
-            (Steps_Daily item) => <String, Object?>{
+            (StepsDaily item) => <String, Object?>{
                   'id': item.id,
                   'steps': item.steps,
                   'dateTime': _dateTimeConverter.encode(item.dateTime),
@@ -202,14 +202,14 @@ class _$StepDao extends StepDao {
 
   final QueryAdapter _queryAdapter;
 
-  final InsertionAdapter<Steps_Daily> _steps_DailyInsertionAdapter;
+  final InsertionAdapter<StepsDaily> _steps_DailyInsertionAdapter;
 
-  final DeletionAdapter<Steps_Daily> _steps_DailyDeletionAdapter;
+  final DeletionAdapter<StepsDaily> _steps_DailyDeletionAdapter;
 
   @override
-  Future<List<Steps_Daily>> findAllSteps() async {
-    return _queryAdapter.queryList('SELECT * FROM Steps_Daily',
-        mapper: (Map<String, Object?> row) => Steps_Daily(
+  Future<List<StepsDaily>> findAllSteps() async {
+    return _queryAdapter.queryList('SELECT * FROM StepsDaily',
+        mapper: (Map<String, Object?> row) => StepsDaily(
             id: row['id'] as int?,
             steps: row['steps'] as int,
             dateTime: _dateTimeConverter.decode(row['dateTime'] as int),
@@ -218,23 +218,23 @@ class _$StepDao extends StepDao {
 
   @override
   Future<void> deleteAllSteps() async {
-    await _queryAdapter.queryNoReturn('DELETE FROM Steps_Daily WHERE 1');
+    await _queryAdapter.queryNoReturn('DELETE FROM StepsDaily WHERE 1');
   }
 
   @override
-  Future<void> insertSteps(Steps_Daily stepsdaily) async {
+  Future<void> insertSteps(StepsDaily stepsdaily) async {
     await _steps_DailyInsertionAdapter.insert(
         stepsdaily, OnConflictStrategy.abort);
   }
 
   @override
-  Future<void> insertMultSteps(List<Steps_Daily> stepsdaily) async {
+  Future<void> insertMultSteps(List<StepsDaily> stepsdaily) async {
     await _steps_DailyInsertionAdapter.insertList(
         stepsdaily, OnConflictStrategy.abort);
   }
 
   @override
-  Future<void> deleteSteps(Steps_Daily stepsdaily) async {
+  Future<void> deleteSteps(StepsDaily stepsdaily) async {
     await _steps_DailyDeletionAdapter.delete(stepsdaily);
   }
 }
@@ -246,8 +246,8 @@ class _$HeartDao extends HeartDao {
   )   : _queryAdapter = QueryAdapter(database),
         _heart_DailyInsertionAdapter = InsertionAdapter(
             database,
-            'Heart_Daily',
-            (Heart_Daily item) => <String, Object?>{
+            'HeartDaily',
+            (HeartDaily item) => <String, Object?>{
                   'id': item.id,
                   'heart': item.heart,
                   'dateTime': _dateTimeConverter.encode(item.dateTime),
@@ -255,9 +255,9 @@ class _$HeartDao extends HeartDao {
                 }),
         _heart_DailyDeletionAdapter = DeletionAdapter(
             database,
-            'Heart_Daily',
+            'HeartDaily',
             ['id'],
-            (Heart_Daily item) => <String, Object?>{
+            (HeartDaily item) => <String, Object?>{
                   'id': item.id,
                   'heart': item.heart,
                   'dateTime': _dateTimeConverter.encode(item.dateTime),
@@ -270,18 +270,18 @@ class _$HeartDao extends HeartDao {
 
   final QueryAdapter _queryAdapter;
 
-  final InsertionAdapter<Heart_Daily> _heart_DailyInsertionAdapter;
+  final InsertionAdapter<HeartDaily> _heart_DailyInsertionAdapter;
 
-  final DeletionAdapter<Heart_Daily> _heart_DailyDeletionAdapter;
+  final DeletionAdapter<HeartDaily> _heart_DailyDeletionAdapter;
 
   @override
-  Future<List<Heart_Daily>> findHeartbyDate(
+  Future<List<HeartDaily>> findHeartbyDate(
     DateTime startTime,
     DateTime endTime,
   ) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM Heart_Daily WHERE dateTime between ?1 and ?2 ORDER BY dateTime ASC',
-        mapper: (Map<String, Object?> row) => Heart_Daily(id: row['id'] as int?, heart: row['heart'] as int, dateTime: _dateTimeConverter.decode(row['dateTime'] as int), patient: row['patient'] as String),
+        'SELECT * FROM HeartDaily WHERE dateTime between ?1 and ?2 ORDER BY dateTime ASC',
+        mapper: (Map<String, Object?> row) => HeartDaily(id: row['id'] as int?, heart: row['heart'] as int, dateTime: _dateTimeConverter.decode(row['dateTime'] as int), patient: row['patient'] as String),
         arguments: [
           _dateTimeConverter.encode(startTime),
           _dateTimeConverter.encode(endTime)
@@ -289,9 +289,9 @@ class _$HeartDao extends HeartDao {
   }
 
   @override
-  Future<List<Heart_Daily>> findAllHeart() async {
-    return _queryAdapter.queryList('SELECT * FROM Heart_Daily',
-        mapper: (Map<String, Object?> row) => Heart_Daily(
+  Future<List<HeartDaily>> findAllHeart() async {
+    return _queryAdapter.queryList('SELECT * FROM HeartDaily',
+        mapper: (Map<String, Object?> row) => HeartDaily(
             id: row['id'] as int?,
             heart: row['heart'] as int,
             dateTime: _dateTimeConverter.decode(row['dateTime'] as int),
@@ -300,23 +300,23 @@ class _$HeartDao extends HeartDao {
 
   @override
   Future<void> deleteAllHeart() async {
-    await _queryAdapter.queryNoReturn('DELETE FROM Heart_Daily WHERE 1');
+    await _queryAdapter.queryNoReturn('DELETE FROM HeartDaily WHERE 1');
   }
 
   @override
-  Future<void> insertHeart(Heart_Daily heartdaily) async {
+  Future<void> insertHeart(HeartDaily heartdaily) async {
     await _heart_DailyInsertionAdapter.insert(
         heartdaily, OnConflictStrategy.abort);
   }
 
   @override
-  Future<void> insertMultHeart(List<Heart_Daily> heartdaily) async {
+  Future<void> insertMultHeart(List<HeartDaily> heartdaily) async {
     await _heart_DailyInsertionAdapter.insertList(
         heartdaily, OnConflictStrategy.abort);
   }
 
   @override
-  Future<void> deleteHeart(Heart_Daily heartdaily) async {
+  Future<void> deleteHeart(HeartDaily heartdaily) async {
     await _heart_DailyDeletionAdapter.delete(heartdaily);
   }
 }

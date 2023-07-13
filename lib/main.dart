@@ -14,7 +14,7 @@ Future <void> main() async {
 
   runApp(ChangeNotifierProvider<DatabaseRepository>(
     create: (context) => databaseRepository,
-    child: MyApp(),
+    child: const MyApp(),
   ));  
 } //main
 
@@ -31,13 +31,13 @@ class MyApp extends StatelessWidget {
           filled: true,
           fillColor: Colors.purple.withOpacity(.1), // Sand color
           contentPadding: EdgeInsets.zero,
-          errorStyle: TextStyle(
+          errorStyle: const TextStyle(
             backgroundColor: Colors.orange,
             color: Colors.white,
           ),
         ),
       ),
-      home: LoginPage(),
+      home: const LoginPage(),
     );
   } //build
 }//MyApp
