@@ -1,3 +1,3 @@
-# Yalla APP
+# Yalla App
 
 A new Flutter project.
