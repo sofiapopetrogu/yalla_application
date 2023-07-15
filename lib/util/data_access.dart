@@ -182,7 +182,6 @@ static Future<List<Heart>> getHeart() async{
         await Authentication.refreshTokens(); //refresh token if expired
         var access = sp.getString('access');
       }
-      print(access);
 
       final startdate = "${start.year.toString()}-${start.month.toString().padLeft(2,'0')}-${start.day.toString().padLeft(2,'0')}";
       final enddate = "${end.year.toString()}-${end.month.toString().padLeft(2,'0')}-${end.day.toString().padLeft(2,'0')}";
@@ -196,9 +195,7 @@ static Future<List<Heart>> getHeart() async{
             Uri.parse(url), 
             headers: headers);
       final List<Heart> result = [];
-      print(response);
-      print(response.statusCode);
-      print(response.body);
+      
       if(response.statusCode == 200){
         final decodedResponse = jsonDecode(response.body);
         
