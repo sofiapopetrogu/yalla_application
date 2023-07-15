@@ -105,6 +105,7 @@ class _HomePageState extends State<HomePage> {
 
 
                 // Wait for all four API calls to finish
+                print('12jhej');
                 await Future.wait([
                   // Get steps for the current week
                   DataAccess.getStepWeek(
@@ -163,6 +164,8 @@ class _HomePageState extends State<HomePage> {
                       enddate.subtract(Duration(days: 8)),
                       currentpatient).then((prev_hearts) async {
                         //once API call is finished, insert heart data into database
+                        print("bdjfhkjgh");
+                        print(prev_hearts);
                         await Provider.of<DatabaseRepository>(context, listen: false)
                           .database
                           .heartDao
@@ -173,9 +176,11 @@ class _HomePageState extends State<HomePage> {
                                   dateTime: heart.time,
                                   patient: heart.patient))
                               .toList());
-                      })
-                ]);
+                      }).catchError(print)
+                ]).catchError(print);
                 
+                print('hfjkqhfjkbw');
+
                 // Variables to store data from the database queries below
                 // late suggests initialization will happen later in code
                 late Map<DateTime, double> datastep;
@@ -190,7 +195,8 @@ class _HomePageState extends State<HomePage> {
                   getMapStep(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), mycondition).then((value) => prev_datastep = value),
                   getMapHeart(startdate, enddate, mycondition).then((value) => dataheart = value),
                   getMapHeart(startdate.subtract(Duration(days: 7)), enddate.subtract(Duration(days: 7)), mycondition).then((value) => prev_dataheart = value) 
-                ]);
+                ]).catchError(print);
+
 
                 // Once all DB queries are finished, update the state of the app
                 setState(() {

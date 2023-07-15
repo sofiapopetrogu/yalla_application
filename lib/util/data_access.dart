@@ -144,7 +144,7 @@ static Future<List<Heart>> getHeart() async{
 
       final startdate = "${start.year.toString()}-${start.month.toString().padLeft(2,'0')}-${start.day.toString().padLeft(2,'0')}";
       final enddate = "${end.year.toString()}-${end.month.toString().padLeft(2,'0')}-${end.day.toString().padLeft(2,'0')}";
-      final url = '${Impact.baseUrl}${Impact.stepEndpoint}patients/$patient/daterange/startdate/$startdate/enddate/$enddate/';
+      final url = Impact.baseUrl + Impact.stepEndpoint + 'patients/$patient/' + 'daterange/start_date/$startdate/' + 'end_date/$enddate/';
 
       final headers = {
         HttpHeaders.authorizationHeader: 'Bearer $access' //user must be authenticated to access this endpoint
@@ -173,6 +173,7 @@ static Future<List<Heart>> getHeart() async{
   static Future<List<Heart>> getHeartWeek(DateTime start, DateTime end, String patient) async{
     final sp = await SharedPreferences.getInstance();
     final access = sp.getString('access'); //request access token, will be null if not present
+
     if(access == null){
       return List.empty();
     }
@@ -181,10 +182,11 @@ static Future<List<Heart>> getHeart() async{
         await Authentication.refreshTokens(); //refresh token if expired
         var access = sp.getString('access');
       }
+      print(access);
 
       final startdate = "${start.year.toString()}-${start.month.toString().padLeft(2,'0')}-${start.day.toString().padLeft(2,'0')}";
       final enddate = "${end.year.toString()}-${end.month.toString().padLeft(2,'0')}-${end.day.toString().padLeft(2,'0')}";
-      final url = '${Impact.baseUrl}${Impact.heartEndpoint}patients/$patient/daterange/startdate/$startdate/enddate/$enddate/';
+      final url = Impact.baseUrl + Impact.heartEndpoint + 'patients/$patient/' + 'daterange/start_date/$startdate/' + 'end_date/$enddate/';
 
       final headers = {
         HttpHeaders.authorizationHeader: 'Bearer $access' //user must be authenticated to access this endpoint
@@ -194,6 +196,9 @@ static Future<List<Heart>> getHeart() async{
             Uri.parse(url), 
             headers: headers);
       final List<Heart> result = [];
+      print(response);
+      print(response.statusCode);
+      print(response.body);
       if(response.statusCode == 200){
         final decodedResponse = jsonDecode(response.body);
         
